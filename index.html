@@ -1,0 +1,2560 @@
+<!DOCTYPE html>
+<html lang="ml">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Isha-athussunna Dawa Dars — Online Quiz Portal</title>
+  <!-- Google Fonts: Manjari for Malayalam & Poppins for English -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manjari:wght@400;700&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Poppins"', '"Manjari"', 'sans-serif'],
+            ml: ['"Manjari"', 'sans-serif'],
+            mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body {
+      font-family: 'Poppins', 'Manjari', sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .ml {
+      font-family: 'Manjari', sans-serif;
+    }
+    @keyframes pulseRed {
+      0%, 100% { background-color: #fee2e2; border-color: #ef4444; color: #b91c1c; transform: scale(1); }
+      50% { background-color: #ef4444; border-color: #991b1b; color: #ffffff; transform: scale(1.03); }
+    }
+    .timer-urgent {
+      animation: pulseRed 1s infinite;
+    }
+    .no-select {
+      user-select: none;
+      -webkit-user-select: none;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-slate-50 text-slate-900">
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+
+  <!-- Custom Confirmation Modal -->
+  <div id="confirm-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-10 h-10 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+        </div>
+        <h3 id="confirm-title" class="text-lg font-bold text-slate-900">Confirm Action</h3>
+      </div>
+      <p id="confirm-message" class="text-sm text-slate-600 mb-6 leading-relaxed"></p>
+      <div class="flex justify-end gap-3">
+        <button id="confirm-cancel-btn" class="px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition">Cancel</button>
+        <button id="confirm-ok-btn" class="px-4 py-2.5 rounded-xl text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 shadow-sm transition">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Anti-Cheating Tab-Switch Warning Modal -->
+  <div id="cheat-warning-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-red-950/85 backdrop-blur-md p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border-2 border-red-500 text-center">
+      <div class="w-16 h-16 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto mb-4 animate-bounce">
+        <svg class="w-9 h-9" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      </div>
+      <h2 class="text-xl font-extrabold text-red-600 mb-2 ml">മുന്നറിയിപ്പ്! (Anti-Cheating Alert)</h2>
+      <p class="text-slate-800 font-bold text-base mb-2 leading-relaxed ml">
+        പരീക്ഷാ പേജിൽ നിന്ന് മറ്റൊരു ആപ്പിലേക്കോ ബ്രൗസർ ടാബിലേക്കോ മാറരുത്!
+      </p>
+      <p class="text-slate-600 text-xs sm:text-sm mb-6 leading-relaxed">
+        Do not switch tabs, minimize the browser, or open other apps during the exam. <strong>One more violation will immediately auto-submit your quiz!</strong>
+      </p>
+      <button onclick="dismissCheatWarning()" class="w-full py-3 px-5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-sm sm:text-base shadow-lg transition ml">
+        മനസ്സിലായി, പരീക്ഷ തുടരുക (Continue Quiz)
+      </button>
+    </div>
+  </div>
+
+  <!-- Top Navigation Header -->
+  <header class="bg-gradient-to-r from-emerald-950 via-emerald-900 to-teal-900 text-white shadow-lg sticky top-0 z-40 border-b border-amber-400/20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-3">
+      <!-- Brand Identity -->
+      <div class="flex items-center gap-3 cursor-pointer" onclick="navigateTo('home')">
+        <div class="w-11 h-11 rounded-xl bg-amber-400/15 border border-amber-300/30 flex items-center justify-center shadow-inner shrink-0">
+          <svg class="w-6 h-6 text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-base sm:text-lg font-bold tracking-tight leading-tight ml text-white">
+            ഇശാഅത്തുസ്സുന്ന ദഅ്‌വ ദർസ് ഓൺലൈൻ ക്വിസ് പോർട്ടൽ
+          </h1>
+          <p class="text-[11px] sm:text-xs text-amber-200/90 font-medium">
+            Isha-athussunna Dawa Dars • Digital Newspaper Quiz & Assessment
+          </p>
+        </div>
+      </div>
+
+      <!-- Navigation & Live Clock -->
+      <div class="flex items-center gap-2 sm:gap-2.5">
+        <div class="hidden lg:flex items-center gap-2 bg-black/30 border border-white/15 px-3 py-1.5 rounded-xl text-xs font-mono text-emerald-200">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+          <span id="header-live-clock">--:--:-- --</span>
+        </div>
+
+        <button onclick="navigateTo('home')" class="px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-white/15 hover:bg-white/25 text-white transition">
+          Student Login
+        </button>
+        <button onclick="navigateTo('leaderboard')" class="px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-white/10 hover:bg-white/20 text-amber-200 transition flex items-center gap-1.5">
+          <span>🏆</span>
+          <span>Weekly Toppers</span>
+        </button>
+        <button onclick="navigateTo('admin')" class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-amber-400 hover:bg-amber-300 text-slate-950 shadow-sm transition flex items-center gap-1.5">
+          <span>⚙️</span>
+          <span>Admin</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Area -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+
+    <!-- ===================================================================== -->
+    <!-- VIEW 1: STUDENT LOGIN & WEEKLY TOPPERS OVERVIEW                       -->
+    <!-- ===================================================================== -->
+    <section id="view-home" class="space-y-8">
+      
+      <!-- Quiz Status Banner -->
+      <div class="rounded-2xl p-4 sm:p-5 border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm bg-white border-emerald-200">
+        <div class="flex items-center gap-3.5">
+          <div id="status-indicator-dot" class="w-3.5 h-3.5 rounded-full bg-emerald-500 shrink-0 animate-pulse"></div>
+          <div>
+            <div class="flex flex-wrap items-center gap-2">
+              <h2 id="display-quiz-title" class="text-lg sm:text-xl font-bold text-slate-900">Daily Newspaper General Knowledge Quiz</h2>
+              <span id="display-quiz-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 ml">ACTIVE • പരീക്ഷ നടന്നുകൊണ്ടിരിക്കുന്നു</span>
+            </div>
+            <p class="text-xs sm:text-sm text-slate-600 mt-1 ml">
+              ചോദ്യങ്ങൾ: <strong id="display-q-count" class="font-sans">10</strong> | ആകെ മാർക്ക്: <strong id="display-total-marks" class="font-sans">25</strong> | സമയം: <strong id="display-duration" class="font-sans">5 Mins</strong>
+            </p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <span id="sync-status-pill" class="text-xs bg-slate-100 text-slate-600 px-3 py-1.5 rounded-xl font-semibold">
+            🔒 Anti-Cheating Enabled
+          </span>
+        </div>
+      </div>
+
+      <!-- Grid: Student Login (Left) & Weekly Category Toppers (Right) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+        
+        <!-- Left 7 Cols: Student Login Card -->
+        <div class="lg:col-span-7 bg-white rounded-2xl shadow-md border border-slate-200 p-6 sm:p-8">
+          <div class="mb-6">
+            <span class="inline-block px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 text-xs font-bold mb-2 ml">
+              വിദ്യാർത്ഥി ലോഗിൻ • Student Portal
+            </span>
+            <h3 class="text-2xl font-bold text-slate-900 ml">നിങ്ങളുടെ സ്റ്റുഡന്റ് ID നൽകുക</h3>
+            <p class="text-xs sm:text-sm text-slate-600 mt-1">
+              Enter your Student ID (<code class="px-1.5 py-0.5 bg-slate-100 rounded text-emerald-700 font-bold">ST001</code> to <code class="px-1.5 py-0.5 bg-slate-100 rounded text-emerald-700 font-bold">ST028</code>) to verify your profile and start the quiz.
+            </p>
+          </div>
+
+          <div class="space-y-4">
+            <div>
+              <label for="student-id-input" class="block text-sm font-bold text-slate-700 mb-1.5">
+                Student ID <span class="ml font-normal text-slate-500">(ഉദാ: ST001, ST014)</span>
+              </label>
+              <div class="relative flex items-center">
+                <input
+                  type="text"
+                  id="student-id-input"
+                  placeholder="ST001"
+                  maxlength="6"
+                  oninput="handleStudentIdLookup(this.value)"
+                  class="w-full px-4 py-3.5 rounded-xl border-2 border-slate-300 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-500/15 text-lg font-bold uppercase tracking-wider text-slate-900 outline-none transition"
+                />
+                <button
+                  type="button"
+                  onclick="handleStudentIdLookup(document.getElementById('student-id-input').value)"
+                  class="absolute right-2 px-4 py-2 rounded-lg bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-bold transition"
+                >
+                  Verify ID
+                </button>
+              </div>
+              <p id="id-lookup-feedback" class="text-xs mt-1.5 text-slate-500 ml">
+                ID ടൈപ്പ് ചെയ്യുമ്പോൾ നിങ്ങളുടെ പേര്, കാറ്റഗറി, ടീം, ബാച്ച് എന്നിവ താഴെ തെളിഞ്ഞുവരും.
+              </p>
+            </div>
+
+            <!-- Live Preview Student Profile Card -->
+            <div id="student-profile-card" class="hidden rounded-2xl bg-gradient-to-br from-emerald-50 via-white to-amber-50/50 border-2 border-emerald-200 p-5 transition-all">
+              <div class="flex items-start justify-between gap-4">
+                <div>
+                  <span class="text-xs font-bold uppercase tracking-wider text-emerald-700 ml">സ്വാഗതം • Welcome Student</span>
+                  <h4 id="profile-name" class="text-xl sm:text-2xl font-extrabold text-slate-900 mt-0.5">-</h4>
+                  <p id="profile-id-badge" class="text-xs font-mono font-bold text-emerald-800 mt-0.5">ID: -</p>
+                </div>
+                <span id="profile-streak-badge" class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-orange-100 text-orange-700 text-xs font-bold border border-orange-200 shrink-0">
+                  🔥 0 Day Streak
+                </span>
+              </div>
+
+              <div class="grid grid-cols-3 gap-2.5 sm:gap-3 mt-4 pt-4 border-t border-emerald-200/80">
+                <div class="bg-white rounded-xl p-2.5 text-center border border-emerald-100 shadow-2xs">
+                  <span class="block text-[11px] font-semibold text-slate-500">Category</span>
+                  <span id="profile-category" class="text-xs sm:text-sm font-bold text-emerald-800">-</span>
+                </div>
+                <div class="bg-white rounded-xl p-2.5 text-center border border-emerald-100 shadow-2xs">
+                  <span class="block text-[11px] font-semibold text-slate-500">Team</span>
+                  <span id="profile-team" class="text-xs sm:text-sm font-bold text-slate-800">-</span>
+                </div>
+                <div class="bg-white rounded-xl p-2.5 text-center border border-emerald-100 shadow-2xs">
+                  <span class="block text-[11px] font-semibold text-slate-500">Batch</span>
+                  <span id="profile-batch" class="text-xs sm:text-sm font-bold text-slate-800">-</span>
+                </div>
+              </div>
+
+              <div id="student-action-area" class="mt-5">
+                <!-- Start Button or Lock Banner injected dynamically -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Rules & Anti-Cheating Guidelines -->
+          <div class="mt-7 pt-6 border-t border-slate-100">
+            <h4 class="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2 ml">
+              <span class="text-emerald-600">📋</span> പരീക്ഷാ നിയമങ്ങൾ (Exam Instructions):
+            </h4>
+            <ul class="space-y-2 text-xs sm:text-sm text-slate-600 ml">
+              <li class="flex items-start gap-2">
+                <span class="text-emerald-600 font-bold">•</span>
+                <span>പരീക്ഷ തുടങ്ങിയാൽ കൃത്യം <strong id="rule-duration-text" class="font-sans">5 മിനിറ്റ്</strong> റിവേഴ്സ് ടൈമർ പ്രവർത്തിക്കും. സമയം കഴിഞ്ഞാൽ താനേ സബ്മിറ്റ് ആകും.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-emerald-600 font-bold">•</span>
+                <span>ഓരോ വിദ്യാർത്ഥിക്കും ചോദ്യങ്ങളും ഓപ്ഷനുകളും വ്യത്യസ്ത ക്രമത്തിൽ (Randomized) ആണ് ലഭിക്കുക.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-red-500 font-bold">•</span>
+                <span><strong>Anti-Cheating:</strong> പരീക്ഷയ്ക്കിടയിൽ മറ്റൊരു ടാബിലേക്കോ ആപ്പിലേക്കോ മാറിയാൽ ആദ്യ തവണ മുന്നറിയിപ്പ് നൽകുകയും, വീണ്ടും ആവർത്തിച്ചാൽ പരീക്ഷ താനേ സബ്മിറ്റ് ആവുകയും ചെയ്യും.</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-emerald-600 font-bold">•</span>
+                <span>സബ്മിറ്റ് ചെയ്ത ശേഷം ഉത്തരങ്ങൾ കാണാൻ സാധിക്കില്ല. ഒരു തവണ എഴുതിയാൽ പിന്നീട് അഡ്മിൻ അനുമതിയില്ലാതെ വീണ്ടും എഴുതാനാവില്ല.</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Right 5 Cols: Automatic Weekly Category Toppers Showcase -->
+        <div class="lg:col-span-5 space-y-5">
+          <div class="bg-white rounded-2xl shadow-md border border-slate-200 p-6">
+            <div class="flex items-center justify-between mb-1">
+              <div>
+                <span class="text-xs font-bold uppercase tracking-wider text-amber-600">Auto-Selected Weekly Champions</span>
+                <h3 class="text-lg font-bold text-slate-900 ml">ഈ ആഴ്ചയിലെ കാറ്റഗറി ടോപ്പർമാർ 🏆</h3>
+              </div>
+              <button onclick="navigateTo('leaderboard')" class="text-xs font-bold text-emerald-700 hover:text-emerald-800 underline">
+                Full Ranks →
+              </button>
+            </div>
+            <p id="home-week-range-label" class="text-[11px] text-slate-500 font-medium mb-4">Current Week</p>
+
+            <div id="home-toppers-container" class="space-y-3">
+              <!-- Senior, Junior, Sub Junior Topper Cards -->
+            </div>
+          </div>
+
+          <!-- Quick Roster Directory Helper -->
+          <div class="bg-emerald-950 text-white rounded-2xl p-5 shadow-md border border-emerald-800">
+            <div class="flex items-center justify-between mb-2">
+              <h4 class="text-sm font-bold text-amber-300">Student ID Directory</h4>
+              <span class="text-xs text-emerald-300">ST001 – ST028</span>
+            </div>
+            <p class="text-xs text-emerald-100/80 mb-3 ml">നിങ്ങളുടെ ID മറന്നുപോയെങ്കിൽ താഴെ നിന്നും തിരഞ്ഞെടുക്കാം:</p>
+            <select id="quick-student-select" onchange="selectStudentFromDropdown(this.value)" class="w-full px-3.5 py-2.5 rounded-xl bg-emerald-900 border border-emerald-700 text-xs sm:text-sm text-white font-medium outline-none focus:border-amber-400">
+              <option value="">-- Select Student Name / ID --</option>
+            </select>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- VIEW 2: LIVE ANTI-CHEATING EXAM ENGINE                                -->
+    <!-- ===================================================================== -->
+    <section id="view-quiz" class="hidden max-w-3xl mx-auto no-select">
+      <!-- Sticky Exam Header -->
+      <div class="bg-white rounded-2xl shadow-md border border-slate-200 p-4 sm:p-5 mb-6 sticky top-20 z-30 flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <span id="quiz-student-meta" class="text-xs font-bold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-lg">ST001 • Student Name</span>
+          <h2 id="quiz-active-title" class="text-base sm:text-lg font-bold text-slate-900 mt-1">Daily Newspaper Quiz</h2>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <div class="text-right hidden sm:block">
+            <span class="block text-[11px] font-semibold text-slate-500">Answered</span>
+            <span id="quiz-answered-count" class="text-sm font-bold text-slate-800">0 / 10</span>
+          </div>
+
+          <!-- Reverse Countdown Box -->
+          <div id="quiz-timer-box" class="px-4 py-2 rounded-xl border-2 border-emerald-500 bg-emerald-50 text-emerald-900 flex items-center gap-2 transition-all">
+            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span id="quiz-timer-display" class="font-mono text-xl sm:text-2xl font-extrabold tracking-wider">05:00</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Randomized Questions Container -->
+      <div id="quiz-questions-list" class="space-y-5"></div>
+
+      <!-- Submit Footer -->
+      <div class="mt-8 bg-white rounded-2xl shadow-md border border-slate-200 p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="text-xs sm:text-sm text-slate-600 ml">
+          എല്ലാ ചോദ്യങ്ങൾക്കും ഉത്തരം നൽകിയെന്ന് ഉറപ്പുവരുത്തിയ ശേഷം സബ്മിറ്റ് ചെയ്യുക.
+        </div>
+        <button onclick="promptManualSubmit()" class="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base shadow-lg transition flex items-center justify-center gap-2">
+          <span class="ml">പരീക്ഷ സമർപ്പിക്കുക</span>
+          <span>• Submit Exam</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- VIEW 3: SUBMISSION CONFIRMATION (ZERO ANSWER REVEAL)                  -->
+    <!-- ===================================================================== -->
+    <section id="view-submitted" class="hidden max-w-xl mx-auto">
+      <div class="bg-white rounded-3xl shadow-xl border border-slate-200 p-6 sm:p-10 text-center">
+        <div class="w-20 h-20 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-5">
+          <svg class="w-11 h-11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+        </div>
+
+        <span class="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold ml">
+          പരീക്ഷ വിജയകരമായി സമർപ്പിച്ചു! • Exam Submitted Successfully!
+        </span>
+        <h2 id="sub-student-name" class="text-2xl sm:text-3xl font-extrabold text-slate-900 mt-3">Student Name</h2>
+        <p id="sub-student-details" class="text-xs sm:text-sm text-slate-500 mt-1">ST001 • Junior • Batch A</p>
+
+        <!-- Summary Cards (Score hidden if Hide Results is ON) -->
+        <div id="sub-stats-grid" class="grid grid-cols-2 gap-3 my-7">
+          <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4">
+            <span class="block text-xs font-semibold text-slate-500">Time Taken</span>
+            <span id="sub-time-display" class="text-xl sm:text-2xl font-extrabold text-slate-800 mt-1 block">02:15</span>
+          </div>
+          <div class="bg-orange-50 border border-orange-200 rounded-2xl p-4">
+            <span class="block text-xs font-semibold text-orange-700">Daily Streak</span>
+            <span id="sub-streak-display" class="text-xl sm:text-2xl font-extrabold text-orange-600 mt-1 block">🔥 1</span>
+          </div>
+          <div id="sub-score-card" class="hidden col-span-2 bg-emerald-50 border border-emerald-200 rounded-2xl p-4">
+            <span class="block text-xs font-semibold text-emerald-700">Your Score (മാർക്ക്)</span>
+            <span id="sub-score-display" class="text-2xl sm:text-3xl font-extrabold text-emerald-900 mt-1 block">0 / 25</span>
+          </div>
+        </div>
+
+        <!-- Anti-Cheating Privacy Notice -->
+        <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-left mb-7">
+          <p class="text-xs sm:text-sm text-amber-950 font-medium leading-relaxed ml">
+            🔒 <strong>സുരക്ഷാ അറിയിപ്പ്:</strong> മറ്റു വിദ്യാർത്ഥികൾ ഉത്തരങ്ങൾ പകർത്തുന്നത് തടയുന്നതിനായി ശരിയുത്തരങ്ങളും വ്യക്തിഗത ഉത്തരങ്ങളും ഇവിടെ പ്രദർശിപ്പിക്കുന്നതല്ല.
+          </p>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-3 justify-center">
+          <button onclick="navigateTo('leaderboard')" class="px-6 py-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-sm shadow transition">
+            🏆 View Weekly Toppers & Leaderboard
+          </button>
+          <button onclick="navigateTo('home')" class="px-6 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-sm transition">
+            Back to Home
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- VIEW 4: WEEKLY CATEGORY TOPPERS & FILTERABLE LEADERBOARD              -->
+    <!-- ===================================================================== -->
+    <section id="view-leaderboard" class="hidden space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-2xl font-bold text-slate-900 ml">ലീഡർബോർഡ് & വീക്കിലി കാറ്റഗറി ടോപ്പർമാർ 🏆</h2>
+          <p id="lb-week-subtitle" class="text-xs sm:text-sm text-slate-600">Automatic Weekly Category Winners (Tie-breaker: Fastest Total Time)</p>
+        </div>
+
+        <!-- Mode Toggle: This Week vs All-Time -->
+        <div class="inline-flex rounded-xl bg-slate-200 p-1 self-start">
+          <button id="lb-mode-weekly" onclick="setLeaderboardMode('weekly')" class="px-4 py-2 rounded-lg text-xs sm:text-sm font-bold bg-white text-emerald-800 shadow-sm transition">
+            This Week
+          </button>
+          <button id="lb-mode-alltime" onclick="setLeaderboardMode('alltime')" class="px-4 py-2 rounded-lg text-xs sm:text-sm font-bold text-slate-600 hover:text-slate-900 transition">
+            All-Time
+          </button>
+        </div>
+      </div>
+
+      <!-- Weekly #1 Category Topper Cards (Senior, Junior, Sub Junior) -->
+      <div id="lb-toppers-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+
+      <!-- Filters Bar -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 flex flex-wrap items-center gap-3">
+        <span class="text-xs font-bold uppercase text-slate-500 mr-1">Filter:</span>
+        
+        <select id="filter-category" onchange="renderLeaderboardTable()" class="px-3.5 py-2 rounded-xl border border-slate-300 text-xs sm:text-sm font-semibold bg-slate-50 outline-none focus:border-emerald-600">
+          <option value="ALL">All Categories</option>
+          <option value="Senior">Senior</option>
+          <option value="Junior">Junior</option>
+          <option value="Sub Junior">Sub Junior</option>
+        </select>
+
+        <select id="filter-team" onchange="renderLeaderboardTable()" class="px-3.5 py-2 rounded-xl border border-slate-300 text-xs sm:text-sm font-semibold bg-slate-50 outline-none focus:border-emerald-600">
+          <option value="ALL">All Teams</option>
+          <option value="Fatih's Force">Fatih's Force</option>
+          <option value="Cordoba Knights">Cordoba Knights</option>
+          <option value="Samarqand Avengers">Samarqand Avengers</option>
+          <option value="Baghdad Gild">Baghdad Gild</option>
+        </select>
+
+        <select id="filter-batch" onchange="renderLeaderboardTable()" class="px-3.5 py-2 rounded-xl border border-slate-300 text-xs sm:text-sm font-semibold bg-slate-50 outline-none focus:border-emerald-600">
+          <option value="ALL">All Batches (A–G)</option>
+          <option value="Batch A">Batch A</option>
+          <option value="Batch B">Batch B</option>
+          <option value="Batch C">Batch C</option>
+          <option value="Batch D">Batch D</option>
+          <option value="Batch E">Batch E</option>
+          <option value="Batch F">Batch F</option>
+          <option value="Batch G">Batch G</option>
+        </select>
+      </div>
+
+      <!-- Leaderboard Table -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-100 border-b border-slate-200 text-xs font-bold uppercase text-slate-600">
+                <th class="py-3.5 px-4">Rank</th>
+                <th class="py-3.5 px-4">ID</th>
+                <th class="py-3.5 px-4">Student Name</th>
+                <th class="py-3.5 px-4">Category</th>
+                <th class="py-3.5 px-4">Team & Batch</th>
+                <th class="py-3.5 px-4 text-right">Quizzes</th>
+                <th class="py-3.5 px-4 text-right">Total Score</th>
+                <th class="py-3.5 px-4 text-right">Total Time</th>
+                <th class="py-3.5 px-4 text-center">Streak</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboard-tbody" class="divide-y divide-slate-100 text-sm"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- VIEW 5: ADMIN CONTROL PANEL                                           -->
+    <!-- ===================================================================== -->
+    <section id="view-admin" class="hidden">
+      
+      <!-- Admin Login Box -->
+      <div id="admin-login-box" class="max-w-md mx-auto bg-white rounded-2xl shadow-lg border border-slate-200 p-6 sm:p-8 mt-6">
+        <div class="w-12 h-12 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center mb-4">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+        </div>
+        <h2 class="text-2xl font-bold text-slate-900">Admin Control Panel</h2>
+        <p class="text-sm text-slate-600 mt-1 mb-6 ml">അഡ്മിൻ ലോഗിൻ വിവരങ്ങൾ നൽകുക</p>
+
+        <form onsubmit="handleAdminLogin(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Admin ID</label>
+            <input type="text" id="admin-user-input" placeholder="admin" required class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-emerald-600 outline-none text-sm font-semibold" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Password</label>
+            <input type="password" id="admin-pass-input" placeholder="••••••••" required class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-emerald-600 outline-none text-sm font-semibold" />
+          </div>
+          <button type="submit" class="w-full py-3.5 rounded-xl bg-emerald-900 hover:bg-emerald-950 text-white font-bold text-sm shadow-md transition">
+            Login to Dashboard
+          </button>
+        </form>
+      </div>
+
+      <!-- Authenticated Admin Dashboard -->
+      <div id="admin-dashboard" class="hidden space-y-6">
+        
+        <!-- Top Command Header -->
+        <div class="bg-emerald-950 text-white rounded-2xl p-5 sm:p-6 shadow-lg flex flex-col lg:flex-row lg:items-center justify-between gap-4 border border-emerald-800">
+          <div>
+            <div class="flex flex-wrap items-center gap-2.5">
+              <span class="px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 text-xs font-extrabold">ADMIN PANEL</span>
+              <span id="admin-live-clock" class="font-mono text-sm text-emerald-300 font-bold">--:--:-- --</span>
+              <span id="admin-sheet-badge" class="px-2.5 py-0.5 rounded-full bg-white/10 text-emerald-200 text-xs font-semibold">Local Mode</span>
+            </div>
+            <h2 class="text-xl sm:text-2xl font-bold mt-1">Isha-athussunna Quiz Command Center</h2>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-3">
+            <div class="bg-white/10 border border-white/15 px-4 py-2 rounded-xl">
+              <span class="block text-[11px] text-emerald-200">Submitted Today</span>
+              <span id="admin-live-sub-count" class="text-base sm:text-lg font-extrabold text-amber-300">0 / 28 Submitted Today</span>
+            </div>
+
+            <button id="admin-toggle-active-btn" onclick="toggleQuizActiveStatus()" class="px-4 py-3 rounded-xl font-bold text-xs sm:text-sm bg-emerald-600 hover:bg-emerald-500 text-white shadow transition">
+              Status: ACTIVE
+            </button>
+
+            <button onclick="logoutAdmin()" class="px-3.5 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold text-slate-200 transition">
+              Logout
+            </button>
+          </div>
+        </div>
+
+        <!-- Admin Navigation Tabs -->
+        <div class="flex flex-wrap gap-2 border-b border-slate-200 pb-3">
+          <button onclick="switchAdminTab('results')" id="tab-btn-results" class="admin-tab-btn px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-emerald-700 text-white shadow-sm">
+            📊 Live Submissions & Re-Attempts
+          </button>
+          <button onclick="switchAdminTab('questions')" id="tab-btn-questions" class="admin-tab-btn px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-white text-slate-700 hover:bg-slate-100 border border-slate-200">
+            📝 Bulk Question Importer
+          </button>
+          <button onclick="switchAdminTab('settings')" id="tab-btn-settings" class="admin-tab-btn px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-white text-slate-700 hover:bg-slate-100 border border-slate-200">
+            ⚙️ Quiz Settings & Daily Reset
+          </button>
+          <button onclick="switchAdminTab('sync')" id="tab-btn-sync" class="admin-tab-btn px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-white text-slate-700 hover:bg-slate-100 border border-slate-200">
+            ☁️ Google Sheet / AppSheet Sync
+          </button>
+          <button onclick="switchAdminTab('students')" id="tab-btn-students" class="admin-tab-btn px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-white text-slate-700 hover:bg-slate-100 border border-slate-200">
+            👥 Roster (ST001–ST028)
+          </button>
+        </div>
+
+        <!-- TAB 1: LIVE SUBMISSIONS & RE-ATTEMPT MANAGER -->
+        <div id="admin-tab-results" class="space-y-4">
+          <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h3 class="text-lg font-bold text-slate-900">Today's Live Submissions</h3>
+              <p class="text-xs text-slate-500 ml">അബദ്ധത്തിൽ സബ്മിറ്റ് ആയ കുട്ടികൾക്ക് 'Allow Re-attempt' നൽകി വീണ്ടും പരീക്ഷ എഴുതാൻ അനുവദിക്കാം.</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <button onclick="exportSubmissionsCSV()" class="px-4 py-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-bold transition">
+                📥 Export CSV
+              </button>
+              <button onclick="promptArchiveAndResetDaily()" class="px-4 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-bold shadow-sm transition">
+                🔄 Archive & Reset Daily Quiz
+              </button>
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="bg-slate-100 border-b border-slate-200 text-xs font-bold uppercase text-slate-600">
+                    <th class="py-3 px-4">ID & Name</th>
+                    <th class="py-3 px-4">Category / Team</th>
+                    <th class="py-3 px-4">Score</th>
+                    <th class="py-3 px-4">Time Taken</th>
+                    <th class="py-3 px-4">Timestamp</th>
+                    <th class="py-3 px-4">Status</th>
+                    <th class="py-3 px-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-results-tbody" class="divide-y divide-slate-100 text-sm"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: SMART BULK QUESTION IMPORTER -->
+        <div id="admin-tab-questions" class="hidden space-y-6">
+          <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-4">
+              <div>
+                <span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold">Auto-Parse MCQ Engine</span>
+                <h3 class="text-lg font-bold text-slate-900 mt-1 ml">ഒറ്റയടിക്ക് ചോദ്യങ്ങൾ ചേർക്കാം (Smart Bulk Question Importer)</h3>
+                <p class="text-xs text-slate-600 ml">ചോദ്യങ്ങളും ഓപ്ഷനുകളും താഴെ പേസ്റ്റ് ചെയ്ത് 'Parse & Import' അമർത്തുക.</p>
+              </div>
+              <div class="flex gap-2">
+                <button type="button" onclick="fillSampleBulkText()" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition">
+                  Load Sample
+                </button>
+                <button type="button" onclick="promptClearAllQuestions()" class="px-3.5 py-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 text-xs font-bold transition">
+                  🗑️ Clear All Questions
+                </button>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+              <div class="lg:col-span-8 space-y-3">
+                <textarea
+                  id="bulk-import-textarea"
+                  rows="9"
+                  placeholder="1. കേരളത്തിന്റെ തലസ്ഥാനം ഏത്?&#10;A) കൊച്ചി&#10;B) തിരുവനന്തപുരം&#10;C) കോഴിക്കോട്&#10;D) തൃശൂർ&#10;Ans: B&#10;&#10;2. ഐക്യരാഷ്ട്രസഭയുടെ ആസ്ഥാനം എവിടെയാണ്?&#10;A) ജനീവ&#10;B) ലണ്ടൻ&#10;C) *ന്യൂയോർക്ക്&#10;D) പാരീസ്"
+                  class="w-full p-4 rounded-xl border-2 border-slate-300 focus:border-emerald-600 outline-none text-sm font-medium leading-relaxed"
+                ></textarea>
+
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                  <div class="flex items-center gap-2">
+                    <label class="text-xs font-bold text-slate-700">Default Marks / Question:</label>
+                    <input type="number" id="bulk-default-marks" value="2.5" step="0.5" min="0.5" class="w-20 px-3 py-1.5 rounded-lg border border-slate-300 text-sm font-bold text-center" />
+                  </div>
+                  <div class="flex flex-wrap items-center gap-3">
+                    <label class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-700 cursor-pointer">
+                      <input type="checkbox" id="bulk-replace-existing" checked class="rounded text-emerald-600" />
+                      Replace existing questions
+                    </label>
+                    <button onclick="parseAndImportBulkQuestions()" class="px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs sm:text-sm font-bold shadow transition">
+                      ⚡ Parse & Import (Syncs Sheet)
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="lg:col-span-4 bg-slate-50 rounded-xl p-4 border border-slate-200 text-xs text-slate-600 space-y-2">
+                <h4 class="font-bold text-slate-800 text-sm">Supported Formats:</h4>
+                <p>• Question line: <code>1. Question?</code> or <code>1) Question?</code></p>
+                <p>• Custom mark: add <code>[2.5]</code> at end of question line.</p>
+                <p>• Options: <code>A) ... B) ... C) ... D) ...</code></p>
+                <p>• Correct Answer: Add <code>Ans: B</code> / <code>Answer: B</code> below options OR put <code>*</code> before/after the right option (e.g. <code>B) *തിരുവനന്തപുരം</code>).</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Active Questions List -->
+          <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+              <div>
+                <h3 class="text-lg font-bold text-slate-900">Active Questions (<span id="admin-q-count">0</span>)</h3>
+                <p class="text-xs text-slate-500">Total Marks: <strong id="admin-q-total-marks" class="text-emerald-700">0</strong></p>
+              </div>
+              <div class="flex gap-2">
+                <button onclick="syncQuestionsToSheet()" class="px-4 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-bold transition">
+                  ☁️ Push Questions to Sheet
+                </button>
+                <button onclick="openAddSingleQuestionModal()" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition">
+                  + Add Single Question
+                </button>
+              </div>
+            </div>
+
+            <div id="admin-questions-list" class="space-y-3"></div>
+          </div>
+        </div>
+
+        <!-- TAB 3: QUIZ SETTINGS & DAILY RESET -->
+        <div id="admin-tab-settings" class="hidden grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-4">
+            <h3 class="text-lg font-bold text-slate-900">Exam Configuration</h3>
+            
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Quiz Title</label>
+              <input type="text" id="setting-quiz-title" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-semibold" />
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Duration (Minutes)</label>
+                <input type="number" id="setting-duration" min="1" max="60" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-bold" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">Current Quiz ID</label>
+                <input type="text" id="setting-quiz-id" readonly class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-xs font-mono text-slate-600" />
+              </div>
+            </div>
+
+            <div class="pt-2">
+              <label class="flex items-start gap-3 p-3.5 rounded-xl bg-amber-50 border border-amber-200 cursor-pointer">
+                <input type="checkbox" id="setting-hide-results" class="mt-0.5 rounded text-emerald-600 w-4 h-4" />
+                <div>
+                  <span class="block text-xs sm:text-sm font-bold text-amber-950">Hide Score on Student Confirmation Screen (Recommended)</span>
+                  <span class="block text-[11px] text-amber-800 mt-0.5 ml">പരീക്ഷ കഴിഞ്ഞാലുടൻ മാർക്കോ ഉത്തരങ്ങളോ കുട്ടികൾക്ക് കാണിക്കാതെ സുരക്ഷിതമായി സൂക്ഷിക്കുന്നു.</span>
+                </div>
+              </label>
+            </div>
+
+            <button onclick="saveQuizSettings()" class="w-full py-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-sm shadow transition">
+              Save & Sync Settings
+            </button>
+          </div>
+
+          <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col justify-between space-y-4">
+            <div>
+              <h3 class="text-lg font-bold text-slate-900 ml">ഡെയിലി ക്വിസ് റീസെറ്റ് (Daily Quiz Archive & Reset)</h3>
+              <p class="text-xs text-slate-600 mt-1.5 leading-relaxed ml">
+                ദിവസേന പുതിയ ചോദ്യങ്ങൾ നൽകുമ്പോൾ ഇന്നത്തെ സബ്മിഷനുകൾ Weekly History-ലേക്ക് സുരക്ഷിതമായി മാറ്റുകയും, അടുത്ത ദിവസത്തെ ക്വിസ്സിനായി എല്ലാ വിദ്യാർത്ഥികളുടെയും ലോക്ക് ഒഴിവാക്കുകയും ചെയ്യാം.
+              </p>
+            </div>
+
+            <div class="space-y-3 pt-4 border-t border-slate-100">
+              <button onclick="exportSubmissionsCSV()" class="w-full py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-sm transition">
+                📥 Download Today's Results (CSV)
+              </button>
+              <button onclick="promptArchiveAndResetDaily()" class="w-full py-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-sm shadow transition">
+                🔄 Archive Today & Reset for Next Quiz
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 4: GOOGLE SHEET / APPSHEET SYNC SETTINGS -->
+        <div id="admin-tab-sync" class="hidden space-y-6">
+          <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-4">
+            <div>
+              <span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold">Cloud Sync Engine</span>
+              <h3 class="text-lg font-bold text-slate-900 mt-1">Google Sheets / AppSheet Web App Connection</h3>
+              <p class="text-xs text-slate-600 mt-1">
+                Paste your deployed Google Apps Script Web App URL below. When connected, adding/clearing questions automatically clears old rows in Google Sheets and syncs live student submissions.
+              </p>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-3">
+              <input
+                type="url"
+                id="setting-webhook-url"
+                placeholder="https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec"
+                class="flex-1 px-4 py-3 rounded-xl border-2 border-slate-300 focus:border-emerald-600 outline-none text-xs sm:text-sm font-mono"
+              />
+              <button onclick="saveWebhookUrl()" class="px-6 py-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs sm:text-sm shadow transition shrink-0">
+                Save URL
+              </button>
+            </div>
+
+            <div class="flex flex-wrap gap-2 pt-2">
+              <button onclick="fetchQuestionsFromSheet(true)" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition">
+                ⬇️ Pull Questions from Sheet
+              </button>
+              <button onclick="syncQuestionsToSheet()" class="px-4 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-bold transition">
+                ⬆️ Force Overwrite Sheet Questions
+              </button>
+            </div>
+          </div>
+
+          <!-- Ready-to-copy Google Apps Script (Code.gs) -->
+          <div class="bg-slate-900 text-slate-100 rounded-2xl p-6 shadow-md space-y-3">
+            <div class="flex items-center justify-between gap-2">
+              <div>
+                <h4 class="text-sm font-bold text-amber-300">Google Apps Script (Code.gs) — Fixed Overwrite & Sync Script</h4>
+                <p class="text-xs text-slate-400">Copy this script into Extensions → Apps Script in your Google Sheet and Deploy as Web App (Access: Anyone).</p>
+              </div>
+              <button onclick="copyAppsScriptCode()" class="px-4 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-bold transition shrink-0">
+                📋 Copy Code.gs
+              </button>
+            </div>
+
+            <pre id="apps-script-code-block" class="bg-slate-950 border border-slate-800 rounded-xl p-4 text-xs font-mono text-emerald-300 overflow-x-auto leading-relaxed">function doGet(e) {
+  var action = (e && e.parameter && e.parameter.action) ? e.parameter.action : 'getQuestions';
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  
+  if (action === 'getQuestions') {
+    var qSheet = ss.getSheetByName('Questions') || ss.insertSheet('Questions');
+    var lastRow = qSheet.getLastRow();
+    if (lastRow &lt; 2) return jsonOut({ status: 'ok', questions: [], settings: getSettingsObj(ss) });
+    
+    var data = qSheet.getRange(2, 1, lastRow - 1, 7).getValues();
+    var questions = data.filter(function(r) { return r[0] !== ''; }).map(function(r, i) {
+      return {
+        id: 'sq_' + (i + 1),
+        text: String(r[0]),
+        options: [String(r[1]), String(r[2]), String(r[3]), String(r[4])],
+        correctIndex: Number(r[5]) || 0,
+        marks: Number(r[6]) || 2.5
+      };
+    });
+    return jsonOut({ status: 'ok', questions: questions, settings: getSettingsObj(ss) });
+  }
+  return jsonOut({ status: 'ok' });
+}
+
+function doPost(e) {
+  var payload = JSON.parse(e.postData.contents);
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  
+  // Properly clears old rows before writing new questions so old questions NEVER remain stuck
+  if (payload.action === 'saveQuestions') {
+    var qSheet = ss.getSheetByName('Questions') || ss.insertSheet('Questions');
+    qSheet.getRange(1, 1, 1, 7).setValues([['Question', 'OptionA', 'OptionB', 'OptionC', 'OptionD', 'CorrectIndex', 'Marks']]);
+    var lastRow = qSheet.getLastRow();
+    if (lastRow &gt;= 2) {
+      qSheet.getRange(2, 1, lastRow - 1, 7).clearContent();
+    }
+    var qs = payload.questions || [];
+    if (qs.length &gt; 0) {
+      var rows = qs.map(function(q) {
+        return [q.text, q.options[0] || '', q.options[1] || '', q.options[2] || '', q.options[3] || '', q.correctIndex, q.marks];
+      });
+      qSheet.getRange(2, 1, rows.length, 7).setValues(rows);
+    }
+    if (payload.settings) saveSettingsObj(ss, payload.settings);
+    return jsonOut({ status: 'ok', count: qs.length });
+  }
+  
+  if (payload.action === 'submitResult') {
+    var rSheet = ss.getSheetByName('Results') || ss.insertSheet('Results');
+    if (rSheet.getLastRow() === 0) {
+      rSheet.appendRow(['Date', 'QuizID', 'StudentID', 'Name', 'Category', 'Team', 'Batch', 'Score', 'MaxMarks', 'TimeTakenSec', 'SubmittedAt', 'Mode']);
+    }
+    var r = payload.result;
+    rSheet.appendRow([r.dateStr, r.quizId, r.studentId, r.name, r.category, r.team, r.batch, r.score, r.maxMarks, r.timeTakenSeconds, r.submittedAtFormatted, r.mode]);
+    return jsonOut({ status: 'ok' });
+  }
+  return jsonOut({ status: 'unknown_action' });
+}
+
+function getSettingsObj(ss) {
+  var sSheet = ss.getSheetByName('Settings') || ss.insertSheet('Settings');
+  if (sSheet.getLastRow() &lt; 2) return null;
+  var row = sSheet.getRange(2, 1, 1, 4).getValues()[0];
+  return { title: row[0], durationMinutes: Number(row[1]) || 5, isActive: row[2] === true || row[2] === 'TRUE', quizId: String(row[3] || '') };
+}
+
+function saveSettingsObj(ss, s) {
+  var sSheet = ss.getSheetByName('Settings') || ss.insertSheet('Settings');
+  sSheet.getRange(1, 1, 1, 4).setValues([['Title', 'DurationMinutes', 'IsActive', 'QuizID']]);
+  sSheet.getRange(2, 1, 1, 4).setValues([[s.title, s.durationMinutes, s.isActive, s.quizId]]);
+}
+
+function jsonOut(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
+}</pre>
+          </div>
+        </div>
+
+        <!-- TAB 5: 28-STUDENT ROSTER TABLE -->
+        <div id="admin-tab-students" class="hidden bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div class="p-5 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h3 class="text-lg font-bold text-slate-900">Master Student Roster (ST001 – ST028)</h3>
+              <p class="text-xs text-slate-500">All 28 Dars students pre-configured with Category, Team, and Batch.</p>
+            </div>
+            <button onclick="resetRosterToDefault()" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition">
+              Restore Default 28 Students
+            </button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-slate-100 border-b border-slate-200 text-xs font-bold uppercase text-slate-600">
+                  <th class="py-3 px-4">ID</th>
+                  <th class="py-3 px-4">Name</th>
+                  <th class="py-3 px-4">Category</th>
+                  <th class="py-3 px-4">Team</th>
+                  <th class="py-3 px-4">Batch</th>
+                  <th class="py-3 px-4 text-center">Streak</th>
+                  <th class="py-3 px-4 text-right">Save</th>
+                </tr>
+              </thead>
+              <tbody id="admin-students-tbody" class="divide-y divide-slate-100 text-sm"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Question Editor Modal -->
+  <div id="question-editor-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 border border-slate-200 max-h-[90vh] overflow-y-auto">
+      <h3 id="q-modal-title" class="text-lg font-bold text-slate-900 mb-4">Edit Question</h3>
+      <form onsubmit="saveQuestionFromModal(event)" class="space-y-3.5">
+        <input type="hidden" id="q-modal-index" value="-1" />
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Question Text</label>
+          <textarea id="q-modal-text" rows="2" required class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm font-medium"></textarea>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Option A</label>
+            <input type="text" id="q-modal-opt0" required class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Option B</label>
+            <input type="text" id="q-modal-opt1" required class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Option C</label>
+            <input type="text" id="q-modal-opt2" required class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Option D</label>
+            <input type="text" id="q-modal-opt3" required class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm" />
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Correct Option</label>
+            <select id="q-modal-correct" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm font-bold">
+              <option value="0">Option A</option>
+              <option value="1">Option B</option>
+              <option value="2">Option C</option>
+              <option value="3">Option D</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Marks</label>
+            <input type="number" id="q-modal-marks" step="0.5" min="0.5" value="2.5" required class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm font-bold" />
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 pt-3">
+          <button type="button" onclick="closeQuestionModal()" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold">Cancel</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-emerald-700 text-white text-xs font-bold">Save Question</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Edit Student Marks Modal -->
+  <div id="edit-marks-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 border border-slate-200">
+      <h3 class="text-lg font-bold text-slate-900 mb-1">Edit Student Marks</h3>
+      <p id="edit-marks-student-info" class="text-xs text-slate-500 mb-4">ST001 - Student</p>
+      <form onsubmit="saveEditedMarks(event)" class="space-y-4">
+        <input type="hidden" id="edit-marks-student-id" />
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">New Score</label>
+          <input type="number" id="edit-marks-input" step="0.5" min="0" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-base font-extrabold" />
+        </div>
+        <div class="flex justify-end gap-2">
+          <button type="button" onclick="closeEditMarksModal()" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold">Cancel</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-emerald-700 text-white text-xs font-bold">Update Marks</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t border-slate-200 py-5 mt-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500">
+      <p>© 2026 <strong class="text-emerald-900">Isha-athussunna Dawa Dars</strong> • Online Quiz & Assessment Portal</p>
+      <p class="ml">ഇശാഅത്തുസ്സുന്ന ദഅ്‌വ ദർസ് • വിജ്ഞാനവും മികവും</p>
+    </div>
+  </footer>
+
+  <!-- ===================================================================== -->
+  <!-- APPLICATION JAVASCRIPT                                                -->
+  <!-- ===================================================================== -->
+  <script>
+    // -------------------------------------------------------------------------
+    // 1. EXACT 28-STUDENT MASTER ROSTER, DEFAULT URL & DEFAULT QUESTIONS
+    // -------------------------------------------------------------------------
+    const STORAGE_KEY = 'ishaathussunna_dawa_dars_quiz_v3';
+    const DEFAULT_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyUSKnyokpuCE8W9P4siZMUCT5h9LpcxtQGHtSxlrAx9TXW0sen3lgHXAGOE0E5QSudLg/exec";
+
+    const EXACT_STUDENTS = [
+      { id: 'ST001', name: 'MUHAMMED RAFI', category: 'Senior', team: "Fatih's Force", batch: 'Batch A' },
+      { id: 'ST002', name: 'AHAMMED KABEER', category: 'Senior', team: 'Cordoba Knights', batch: 'Batch A' },
+      { id: 'ST003', name: 'LUKHMAN.VK', category: 'Senior', team: "Fatih's Force", batch: 'Batch B' },
+      { id: 'ST004', name: 'MUHAMMED.K', category: 'Senior', team: 'Samarqand Avengers', batch: 'Batch B' },
+      { id: 'ST005', name: 'MUHAMMED FASALURAHMAN.P', category: 'Senior', team: 'Baghdad Gild', batch: 'Batch B' },
+      { id: 'ST006', name: 'MUHAMMED FADHAL.P', category: 'Junior', team: 'Baghdad Gild', batch: 'Batch C' },
+      { id: 'ST007', name: 'MUHAMMED SHAMMAS.N', category: 'Junior', team: 'Baghdad Gild', batch: 'Batch C' },
+      { id: 'ST008', name: 'MUHAMMED MIDLAJ.N', category: 'Junior', team: 'Cordoba Knights', batch: 'Batch C' },
+      { id: 'ST009', name: 'MUHAMMED RAEES.TK', category: 'Junior', team: 'Samarqand Avengers', batch: 'Batch C' },
+      { id: 'ST010', name: 'MUHAMMED RABEEH.MT', category: 'Junior', team: 'Samarqand Avengers', batch: 'Batch D' },
+      { id: 'ST011', name: 'MUHAMMED THWAYYIB', category: 'Junior', team: 'Cordoba Knights', batch: 'Batch D' },
+      { id: 'ST012', name: 'MUHAMMED SINAN.NC', category: 'Junior', team: 'Samarqand Avengers', batch: 'Batch D' },
+      { id: 'ST013', name: 'MUHAMMED MUSHAB', category: 'Junior', team: "Fatih's Force", batch: 'Batch D' },
+      { id: 'ST014', name: 'MASHHOORUL HAQ', category: 'Junior', team: "Fatih's Force", batch: 'Batch D' },
+      { id: 'ST015', name: 'MUHAMMED RAHOOF.P', category: 'Junior', team: 'Cordoba Knights', batch: 'Batch E' },
+      { id: 'ST016', name: 'MUHAMMED SHIHAL.T', category: 'Sub Junior', team: 'Baghdad Gild', batch: 'Batch E' },
+      { id: 'ST017', name: 'MUHAMMED SAEED.VK', category: 'Sub Junior', team: 'Samarqand Avengers', batch: 'Batch E' },
+      { id: 'ST018', name: 'MUHAMMED HADHI.VP', category: 'Sub Junior', team: 'Samarqand Avengers', batch: 'Batch E' },
+      { id: 'ST019', name: 'MUHAMMED SINAN.E', category: 'Sub Junior', team: "Fatih's Force", batch: 'Batch E' },
+      { id: 'ST020', name: 'MUHAMMED MARZOOQ.VK', category: 'Sub Junior', team: 'Cordoba Knights', batch: 'Batch F' },
+      { id: 'ST021', name: 'MUHAMMED AZHARUDHEEN.N', category: 'Sub Junior', team: 'Baghdad Gild', batch: 'Batch F' },
+      { id: 'ST022', name: 'MUHAMMED RAZI', category: 'Sub Junior', team: 'Baghdad Gild', batch: 'Batch F' },
+      { id: 'ST023', name: 'MUHAMMED MISBAH.P', category: 'Sub Junior', team: 'Cordoba Knights', batch: 'Batch F' },
+      { id: 'ST024', name: 'MUHHAMMED SINAN.EK', category: 'Sub Junior', team: 'Cordoba Knights', batch: 'Batch F' },
+      { id: 'ST025', name: 'MUHAMMED RAFEEH', category: 'Sub Junior', team: 'Baghdad Gild', batch: 'Batch F' },
+      { id: 'ST026', name: 'MUHAMMED NIZAMUDHEEN', category: 'Sub Junior', team: 'Cordoba Knights', batch: 'Batch F' },
+      { id: 'ST027', name: 'MUHAMMED FUWAD', category: 'Sub Junior', team: "Fatih's Force", batch: 'Batch G' },
+      { id: 'ST028', name: 'MUHAMMED KHIDASH', category: 'Sub Junior', team: 'Cordoba Knights', batch: 'Batch G' }
+    ];
+
+    const DEFAULT_QUESTIONS = [
+      {
+        id: 'q1',
+        text: 'കേരളത്തിലെ ഏറ്റവും വലിയ ശുദ്ധജല തടാകം ഏതാണ്? (Which is the largest freshwater lake in Kerala?)',
+        options: ['വേമ്പനാട് കായൽ', 'അഷ്ടമുടിക്കായൽ', 'ശാസ്താംകോട്ട കായൽ', 'പൂക്കോട് തടാകം'],
+        correctIndex: 2,
+        marks: 2.5
+      },
+      {
+        id: 'q2',
+        text: 'ഐക്യരാഷ്ട്രസഭയുടെ (UN) ആസ്ഥാനം എവിടെയാണ്? (Headquarters of the United Nations)',
+        options: ['ജനീവ (Geneva)', 'ന്യൂയോർക്ക് (New York)', 'പാരീസ് (Paris)', 'ലണ്ടൻ (London)'],
+        correctIndex: 1,
+        marks: 2.5
+      },
+      {
+        id: 'q3',
+        text: 'ഖുർആനിൽ ഏറ്റവും കൂടുതൽ തവണ പരാമർശിക്കപ്പെട്ട പ്രവാചകൻ ആരാണ്?',
+        options: ['ഇബ്രാഹിം നബി (അ)', 'മൂസാ നബി (അ)', 'ഈസാ നബി (അ)', 'നൂഹ് നബി (അ)'],
+        correctIndex: 1,
+        marks: 2.5
+      },
+      {
+        id: 'q4',
+        text: 'ഇന്ത്യയുടെ ബഹിരാകാശ ഏജൻസിയായ ISRO-യുടെ ആസ്ഥാനം എവിടെയാണ്?',
+        options: ['ശ്രീഹരിക്കോട്ട', 'തിരുവനന്തപുരം', 'ബെംഗളൂരു (Bengaluru)', 'ഹൈദരാബാദ്'],
+        correctIndex: 2,
+        marks: 2.5
+      },
+      {
+        id: 'q5',
+        text: 'ലോക പരിസ്ഥിതി ദിനം എന്നാണ് ആചരിക്കുന്നത്? (World Environment Day)',
+        options: ['ജൂൺ 5 (June 5)', 'ഏപ്രിൽ 22 (April 22)', 'മാർച്ച് 21 (March 21)', 'സെപ്റ്റംബർ 16 (September 16)'],
+        correctIndex: 0,
+        marks: 2.5
+      },
+      {
+        id: 'q6',
+        text: 'ഇന്ത്യൻ ഭരണഘടനയുടെ ശില്പി എന്നറിയപ്പെടുന്നത് ആരാണ്? (Architect of Indian Constitution)',
+        options: ['ജവഹർലാൽ നെഹ്‌റു', 'ഡോ. രാജേന്ദ്ര പ്രസാദ്', 'ഡോ. ബി.ആർ. അംബേദ്കർ', 'സർദാർ വല്ലഭായ് പട്ടേൽ'],
+        correctIndex: 2,
+        marks: 2.5
+      },
+      {
+        id: 'q7',
+        text: 'സൗരയൂഥത്തിലെ ഏറ്റവും വലിയ ഗ്രഹം ഏതാണ്? (Largest planet in our Solar System)',
+        options: ['ശനി (Saturn)', 'വ്യാഴം (Jupiter)', 'ചൊവ്വ (Mars)', 'നെപ്റ്റ്യൂൺ (Neptune)'],
+        correctIndex: 1,
+        marks: 2.5
+      },
+      {
+        id: 'q8',
+        text: 'കേരളത്തിലെ ആദ്യത്തെ സമ്പൂർണ്ണ സാക്ഷരതാ നഗരം ഏതാണ്?',
+        options: ['കോട്ടയം (Kottayam)', 'എറണാകുളം (Ernakulam)', 'കോഴിക്കോട് (Kozhikode)', 'തൃശൂർ (Thrissur)'],
+        correctIndex: 0,
+        marks: 2.5
+      },
+      {
+        id: 'q9',
+        text: 'ദേശീയ ശാസ്ത്ര ദിനം (National Science Day) എന്നാണ് ആചരിക്കുന്നത്?',
+        options: ['ജനുവരി 26', 'ഫെബ്രുവരി 28 (February 28)', 'ആഗസ്റ്റ് 15', 'നവംബർ 14'],
+        correctIndex: 1,
+        marks: 2.5
+      },
+      {
+        id: 'q10',
+        text: 'കേരളത്തിലെ ഏറ്റവും നീളം കൂടിയ നദി ഏതാണ്? (Longest river in Kerala)',
+        options: ['ഭാരതപ്പുഴ', 'പെരിയാർ (Periyar)', 'പമ്പ', 'ചാലിയാർ'],
+        correctIndex: 1,
+        marks: 2.5
+      }
+    ];
+
+    // -------------------------------------------------------------------------
+    // 2. APPLICATION STATE & STORAGE
+    // -------------------------------------------------------------------------
+    function getTodayDateStr() {
+      const now = new Date();
+      return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    }
+
+    let appState = {
+      settings: {
+        title: 'Daily Newspaper General Knowledge Quiz',
+        durationMinutes: 5,
+        isActive: true,
+        hideResults: true,
+        quizId: 'QUIZ_' + getTodayDateStr(),
+        webhookUrl: DEFAULT_SCRIPT_URL
+      },
+      students: [],
+      questions: [],
+      todaySubmissions: [], // Submissions for current active quizId
+      historyLogs: []       // All archived & cumulative attempts for weekly/all-time calculation
+    };
+
+    let activeExam = {
+      inProgress: false,
+      student: null,
+      questions: [],
+      timerInterval: null,
+      remainingSeconds: 300,
+      totalAllowedSeconds: 300,
+      tabSwitches: 0,
+      warningOpen: false
+    };
+
+    let isAdminLoggedIn = false;
+    let leaderboardMode = 'weekly'; // 'weekly' or 'alltime'
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          appState.settings = { ...appState.settings, ...(parsed.settings || {}) };
+          if (!appState.settings.webhookUrl) {
+            appState.settings.webhookUrl = DEFAULT_SCRIPT_URL;
+          }
+          appState.students = Array.isArray(parsed.students) && parsed.students.length === 28
+            ? parsed.students
+            : JSON.parse(JSON.stringify(EXACT_STUDENTS));
+          appState.questions = Array.isArray(parsed.questions)
+            ? parsed.questions
+            : JSON.parse(JSON.stringify(DEFAULT_QUESTIONS));
+          appState.todaySubmissions = Array.isArray(parsed.todaySubmissions) ? parsed.todaySubmissions : [];
+          appState.historyLogs = Array.isArray(parsed.historyLogs) ? parsed.historyLogs : [];
+        } else {
+          appState.settings.webhookUrl = DEFAULT_SCRIPT_URL;
+          appState.students = JSON.parse(JSON.stringify(EXACT_STUDENTS));
+          appState.questions = JSON.parse(JSON.stringify(DEFAULT_QUESTIONS));
+          saveState();
+        }
+      } catch (err) {
+        console.error('State load error:', err);
+        appState.settings.webhookUrl = DEFAULT_SCRIPT_URL;
+        appState.students = JSON.parse(JSON.stringify(EXACT_STUDENTS));
+        appState.questions = JSON.parse(JSON.stringify(DEFAULT_QUESTIONS));
+      }
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+      } catch (err) {
+        showToast('Warning: Browser storage full.', 'error');
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // 3. WEEK CALCULATION, STREAKS, CLOCK & HELPERS
+    // -------------------------------------------------------------------------
+    // Computes current week window (Saturday 00:00:00 to Friday 23:59:59)
+    function getCurrentWeekWindow() {
+      const now = new Date();
+      const dayOfWeek = now.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+      // Days since Saturday: Sat(6)->0, Sun(0)->1, Mon(1)->2, Tue(2)->3, Wed(3)->4, Thu(4)->5, Fri(5)->6
+      const diffToSaturday = (dayOfWeek + 1) % 7;
+
+      const start = new Date(now);
+      start.setDate(now.getDate() - diffToSaturday);
+      start.setHours(0, 0, 0, 0);
+
+      const end = new Date(start);
+      end.setDate(start.getDate() + 6);
+      end.setHours(23, 59, 59, 999);
+
+      const fmt = (d) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      return {
+        startTs: start.getTime(),
+        endTs: end.getTime(),
+        label: `${fmt(start)} – ${fmt(end)} (Sat – Fri)`
+      };
+    }
+
+    // Computes consecutive daily participation streak for a student
+    function getStudentStreak(studentId) {
+      const allRecords = [
+        ...appState.historyLogs.filter(r => r.studentId === studentId),
+        ...appState.todaySubmissions.filter(r => r.studentId === studentId)
+      ];
+      if (allRecords.length === 0) return 0;
+
+      const uniqueDates = [...new Set(allRecords.map(r => r.dateStr || getTodayDateStr()))].sort().reverse();
+      let streak = 0;
+      let checkDate = new Date();
+      checkDate.setHours(0, 0, 0, 0);
+
+      // Check if today or yesterday is present to start streak
+      const todayStr = getTodayDateStr();
+      const yesterday = new Date(checkDate);
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yestStr = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
+
+      if (uniqueDates[0] !== todayStr && uniqueDates[0] !== yestStr) {
+        return 0;
+      }
+
+      let cursor = uniqueDates[0] === todayStr ? new Date(checkDate) : yesterday;
+      const dateSet = new Set(uniqueDates);
+
+      while (true) {
+        const cStr = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, '0')}-${String(cursor.getDate()).padStart(2, '0')}`;
+        if (dateSet.has(cStr)) {
+          streak += 1;
+          cursor.setDate(cursor.getDate() - 1);
+        } else {
+          break;
+        }
+      }
+      return streak;
+    }
+
+    function format12HourClock(dateObj = new Date()) {
+      let hours = dateObj.getHours();
+      const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+      const seconds = String(dateObj.getSeconds()).padStart(2, '0');
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12 || 12;
+      return `${String(hours).padStart(2, '0')}:${minutes}:${seconds} ${ampm}`;
+    }
+
+    function formatMMSS(sec) {
+      const s = Math.max(0, Math.floor(sec));
+      const m = Math.floor(s / 60);
+      const rem = s % 60;
+      return `${String(m).padStart(2, '0')}:${String(rem).padStart(2, '0')}`;
+    }
+
+    function startLiveClocks() {
+      const tick = () => {
+        const str = format12HourClock(new Date());
+        const hEl = document.getElementById('header-live-clock');
+        const aEl = document.getElementById('admin-live-clock');
+        if (hEl) hEl.textContent = str;
+        if (aEl) aEl.textContent = str;
+      };
+      tick();
+      setInterval(tick, 1000);
+    }
+
+    function showToast(msg, type = 'success') {
+      const container = document.getElementById('toast-container');
+      const el = document.createElement('div');
+      const colors = type === 'error'
+        ? 'bg-red-600 text-white'
+        : type === 'warning'
+        ? 'bg-amber-400 text-slate-950'
+        : 'bg-emerald-900 text-white border border-emerald-700';
+      el.className = `${colors} px-4 py-3 rounded-xl shadow-xl text-xs sm:text-sm font-bold pointer-events-auto transition-all`;
+      el.textContent = msg;
+      container.appendChild(el);
+      setTimeout(() => {
+        el.style.opacity = '0';
+        setTimeout(() => el.remove(), 300);
+      }, 3600);
+    }
+
+    function showConfirmDialog(title, message, onConfirm) {
+      const modal = document.getElementById('confirm-modal');
+      document.getElementById('confirm-title').textContent = title;
+      document.getElementById('confirm-message').textContent = message;
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+
+      const cancelBtn = document.getElementById('confirm-cancel-btn');
+      const okBtn = document.getElementById('confirm-ok-btn');
+
+      const close = () => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        cancelBtn.onclick = null;
+        okBtn.onclick = null;
+      };
+
+      cancelBtn.onclick = close;
+      okBtn.onclick = () => {
+        close();
+        onConfirm();
+      };
+    }
+
+    function escapeHTML(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // -------------------------------------------------------------------------
+    // 4. NAVIGATION
+    // -------------------------------------------------------------------------
+    function navigateTo(view) {
+      if (activeExam.inProgress && view !== 'quiz') {
+        showToast('പരീക്ഷ നടന്നുകൊണ്ടിരിക്കുകയാണ്! സബ്മിറ്റ് ചെയ്ത ശേഷം മാത്രം പേജ് മാറുക.', 'warning');
+        return;
+      }
+
+      ['home', 'quiz', 'submitted', 'leaderboard', 'admin'].forEach(v => {
+        const el = document.getElementById(`view-${v}`);
+        if (el) el.classList.add('hidden');
+      });
+
+      const target = document.getElementById(`view-${view}`);
+      if (target) target.classList.remove('hidden');
+
+      if (view === 'home') refreshHomeView();
+      if (view === 'leaderboard') refreshLeaderboardView();
+      if (view === 'admin') refreshAdminView();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // -------------------------------------------------------------------------
+    // 5. STUDENT PORTAL & LIVE ID VERIFICATION
+    // -------------------------------------------------------------------------
+    function refreshHomeView() {
+      const { title, durationMinutes, isActive, webhookUrl } = appState.settings;
+      const totalMarks = appState.questions.reduce((sum, q) => sum + Number(q.marks || 0), 0);
+
+      document.getElementById('display-quiz-title').textContent = title;
+      document.getElementById('display-q-count').textContent = appState.questions.length;
+      document.getElementById('display-total-marks').textContent = totalMarks;
+      document.getElementById('display-duration').textContent = `${durationMinutes} Mins`;
+      document.getElementById('rule-duration-text').textContent = `${durationMinutes} മിനിറ്റ്`;
+
+      const badge = document.getElementById('display-quiz-badge');
+      const dot = document.getElementById('status-indicator-dot');
+      if (isActive) {
+        badge.textContent = 'ACTIVE • പരീക്ഷ നടന്നുകൊണ്ടിരിക്കുന്നു';
+        badge.className = 'px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 ml';
+        dot.className = 'w-3.5 h-3.5 rounded-full bg-emerald-500 shrink-0 animate-pulse';
+      } else {
+        badge.textContent = 'INACTIVE • പരീക്ഷ താൽക്കാലികമായി നിർത്തിവെച്ചിരിക്കുന്നു';
+        badge.className = 'px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-800 ml';
+        dot.className = 'w-3.5 h-3.5 rounded-full bg-red-500 shrink-0';
+      }
+
+      const syncPill = document.getElementById('sync-status-pill');
+      syncPill.textContent = webhookUrl ? '☁️ Sheet Synced • 🔒 Anti-Cheat ON' : '🔒 Anti-Cheating Enabled';
+
+      // Populate Quick Directory Select
+      const select = document.getElementById('quick-student-select');
+      const prev = select.value;
+      select.innerHTML = '<option value="">-- Select Student Name / ID --</option>';
+      appState.students.forEach(st => {
+        const opt = document.createElement('option');
+        opt.value = st.id;
+        opt.textContent = `${st.id} — ${st.name} (${st.category} • ${st.team})`;
+        select.appendChild(opt);
+      });
+      if (prev) select.value = prev;
+
+      const typed = document.getElementById('student-id-input').value;
+      if (typed) handleStudentIdLookup(typed);
+
+      // Render Automatic Weekly Category Toppers
+      const weekWin = getCurrentWeekWindow();
+      document.getElementById('home-week-range-label').textContent = `Week: ${weekWin.label}`;
+      renderCategoryToppers('home-toppers-container');
+    }
+
+    function selectStudentFromDropdown(id) {
+      if (!id) return;
+      document.getElementById('student-id-input').value = id;
+      handleStudentIdLookup(id);
+    }
+
+    function handleStudentIdLookup(rawVal) {
+      const cleanId = (rawVal || '').trim().toUpperCase();
+      const card = document.getElementById('student-profile-card');
+      const feedback = document.getElementById('id-lookup-feedback');
+
+      if (!cleanId) {
+        card.classList.add('hidden');
+        feedback.textContent = 'ID ടൈപ്പ് ചെയ്യുമ്പോൾ നിങ്ങളുടെ പേര്, കാറ്റഗറി, ടീം, ബാച്ച് എന്നിവ താഴെ തെളിഞ്ഞുവരും.';
+        feedback.className = 'text-xs mt-1.5 text-slate-500 ml';
+        return;
+      }
+
+      const student = appState.students.find(s => s.id.toUpperCase() === cleanId);
+      if (!student) {
+        card.classList.add('hidden');
+        feedback.textContent = `❌ "${cleanId}" എന്ന ID കണ്ടെത്താനായില്ല. ST001 മുതൽ ST028 വരെയുള്ള ID നൽകുക.`;
+        feedback.className = 'text-xs mt-1.5 text-red-600 font-bold ml';
+        return;
+      }
+
+      feedback.textContent = '✅ വിദ്യാർത്ഥിയുടെ വിവരങ്ങൾ സ്ഥിരീകരിച്ചു (Student Verified)';
+      feedback.className = 'text-xs mt-1.5 text-emerald-700 font-bold ml';
+
+      const streak = getStudentStreak(student.id);
+      document.getElementById('profile-name').textContent = student.name;
+      document.getElementById('profile-id-badge').textContent = `ID: ${student.id}`;
+      document.getElementById('profile-category').textContent = student.category;
+      document.getElementById('profile-team').textContent = student.team;
+      document.getElementById('profile-batch').textContent = student.batch;
+      document.getElementById('profile-streak-badge').textContent = `🔥 ${streak} Day Streak`;
+
+      const actionArea = document.getElementById('student-action-area');
+      const alreadySubmitted = appState.todaySubmissions.find(
+        sub => sub.studentId === student.id && sub.quizId === appState.settings.quizId
+      );
+
+      if (alreadySubmitted) {
+        actionArea.innerHTML = `
+          <div class="rounded-xl bg-amber-100 border border-amber-300 p-4 text-amber-950">
+            <div class="font-bold text-xs sm:text-sm ml">
+              🔒 നിങ്ങൾ ഇന്നത്തെ ക്വിസ് പൂർത്തിയാക്കിയിട്ടുണ്ട് (Already Submitted)
+            </div>
+            <p class="text-xs mt-1 text-amber-900">
+              Submitted at: <strong>${alreadySubmitted.submittedAtFormatted}</strong> • Time Taken: <strong>${formatMMSS(alreadySubmitted.timeTakenSeconds)}</strong>
+            </p>
+            <p class="text-[11px] mt-1 text-amber-800 ml">
+              അബദ്ധത്തിൽ സബ്മിറ്റ് ആയതാണെങ്കിൽ വീണ്ടും എഴുതാൻ അഡ്മിനുമായി ബന്ധപ്പെടുക.
+            </p>
+          </div>
+        `;
+      } else if (!appState.settings.isActive) {
+        actionArea.innerHTML = `
+          <div class="rounded-xl bg-red-100 border border-red-300 p-4 text-red-900 text-xs sm:text-sm font-bold ml">
+            ⏸️ പരീക്ഷ ഇപ്പോൾ ആക്റ്റീവ് അല്ല. അഡ്മിൻ പരീക്ഷ ആരംഭിക്കുന്നത് വരെ കാത്തിരിക്കുക.
+          </div>
+        `;
+      } else if (appState.questions.length === 0) {
+        actionArea.innerHTML = `
+          <div class="rounded-xl bg-red-100 border border-red-300 p-4 text-red-900 text-xs sm:text-sm font-bold ml">
+            ⚠️ ചോദ്യങ്ങൾ ഒന്നും ചേർത്തിട്ടില്ല. അഡ്മിനുമായി ബന്ധപ്പെടുക.
+          </div>
+        `;
+      } else {
+    async function startStudentExam(studentId) {
+      const student = appState.students.find(s => s.id === studentId);
+      if (!student) return;
+
+      // Sync latest live questions & settings from Google Sheet before launching exam
+      showToast('ചോദ്യങ്ങൾ ലോഡ് ചെയ്യുന്നു... (Syncing Live Quiz)', 'success');
+      await fetchQuestionsFromSheet(false);
+
+      const isLocked = appState.todaySubmissions.some(
+        sub => sub.studentId === student.id && sub.quizId === appState.settings.quizId
+      );
+      if (isLocked) {
+        showToast('നിങ്ങൾ ഈ ക്വിസ് ഇതിനകം പൂർത്തിയാക്കിയിട്ടുണ്ട്!', 'error');
+        handleStudentIdLookup(student.id);
+        return;
+      }
+
+      if (!appState.settings.isActive || appState.questions.length === 0) {
+        showToast('പരീക്ഷ ഇപ്പോൾ ലഭ്യമല്ല.', 'error');
+        handleStudentIdLookup(student.id);
+        return;
+      }
+
+      // Immediate Attempt Lock upon starting quiz so refreshing/closing cannot bypass attempt limit
+      const startNow = new Date();
+      const initialLockRecord = {
+        attemptId: `${appState.settings.quizId}_${student.id}`,
+        quizId: appState.settings.quizId,
+        dateStr: getTodayDateStr(),
+        timestamp: startNow.getTime(),
+        studentId: student.id,
+        name: student.name,
+        category: student.category,
+        team: student.team,
+        batch: student.batch,
+        score: 0,
+        maxMarks: appState.questions.reduce((s, q) => s + Number(q.marks || 0), 0),
+        timeTakenSeconds: 0,
+        submittedAtFormatted: format12HourClock(startNow),
+        mode: 'Started (In Progress / Incomplete)'
+      };
+      appState.todaySubmissions.push(initialLockRecord);
+      appState.historyLogs.push(initialLockRecord);
+      saveState();
+
+      // Randomize questions AND randomize options per question while preserving true correct answer
+      const randomizedQs = shuffleArray(appState.questions).map((q, idx) => {
+        const mappedOptions = q.options.map((optText, oIdx) => ({
+          text: optText,
+          isCorrect: oIdx === Number(q.correctIndex)
+        }));
+        return {
+          displayNum: idx + 1,
+          text: q.text,
+          marks: Number(q.marks || 2.5),
+          options: shuffleArray(mappedOptions),
+          selectedIdx: null
+        };
+      });
+
+      const allowedSec = Math.max(1, Number(appState.settings.durationMinutes || 5)) * 60;
+
+      activeExam = {
+        inProgress: true,
+        student: student,
+        questions: randomizedQs,
+        timerInterval: null,
+        remainingSeconds: allowedSec,
+        totalAllowedSeconds: allowedSec,
+        tabSwitches: 0,
+        warningOpen: false
+      };
+
+      document.getElementById('quiz-student-meta').textContent = `${student.id} • ${student.name} (${student.category})`;
+      document.getElementById('quiz-active-title').textContent = appState.settings.title;
+      renderExamQuestions();
+      updateExamProgress();
+      navigateTo('quiz');
+
+      updateCountdownUI();
+      activeExam.timerInterval = setInterval(() => {
+        activeExam.remainingSeconds -= 1;
+        updateCountdownUI();
+        if (activeExam.remainingSeconds <= 0) {
+          clearInterval(activeExam.timerInterval);
+          finalizeExamSubmission('Time Expired (Auto-Submit)');
+        }
+      }, 1000);
+    }
+
+    function updateCountdownUI() {
+      const display = document.getElementById('quiz-timer-display');
+      const box = document.getElementById('quiz-timer-box');
+      const rem = activeExam.remainingSeconds;
+      display.textContent = formatMMSS(rem);
+
+      if (rem <= 30) {
+        box.className = 'px-4 py-2 rounded-xl border-2 flex items-center gap-2 transition-all timer-urgent';
+      } else {
+        box.className = 'px-4 py-2 rounded-xl border-2 border-emerald-500 bg-emerald-50 text-emerald-900 flex items-center gap-2 transition-all';
+      }
+    }
+
+    function renderExamQuestions() {
+      const container = document.getElementById('quiz-questions-list');
+      const letters = ['A', 'B', 'C', 'D'];
+
+      container.innerHTML = activeExam.questions.map((q, qIdx) => `
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-6">
+          <div class="flex items-start justify-between gap-3 mb-4">
+            <div class="flex items-start gap-3">
+              <span class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-900 font-extrabold text-sm flex items-center justify-center shrink-0">
+                ${q.displayNum}
+              </span>
+              <h3 class="text-base sm:text-lg font-bold text-slate-900 leading-snug pt-0.5">${escapeHTML(q.text)}</h3>
+            </div>
+            <span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 text-xs font-bold shrink-0">
+              ${q.marks} Marks
+            </span>
+          </div>
+
+          <div class="grid grid-cols-1 gap-2.5">
+            ${q.options.map((opt, optIdx) => {
+              const selected = q.selectedIdx === optIdx;
+              return `
+                <button
+                  type="button"
+                  onclick="chooseExamOption(${qIdx}, ${optIdx})"
+                  class="w-full text-left p-3.5 rounded-xl border-2 transition flex items-center gap-3 ${
+                    selected
+                      ? 'border-emerald-600 bg-emerald-50 text-emerald-950 font-bold shadow-2xs'
+                      : 'border-slate-200 hover:border-emerald-300 hover:bg-slate-50 text-slate-800 font-medium'
+                  }"
+                >
+                  <span class="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-extrabold shrink-0 ${
+                    selected ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600'
+                  }">
+                    ${letters[optIdx] || optIdx + 1}
+                  </span>
+                  <span class="text-sm sm:text-base">${escapeHTML(opt.text)}</span>
+                </button>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function chooseExamOption(qIdx, optIdx) {
+      if (!activeExam.inProgress) return;
+      activeExam.questions[qIdx].selectedIdx = optIdx;
+      renderExamQuestions();
+      updateExamProgress();
+    }
+
+    function updateExamProgress() {
+      const answered = activeExam.questions.filter(q => q.selectedIdx !== null).length;
+      document.getElementById('quiz-answered-count').textContent = `${answered} / ${activeExam.questions.length}`;
+    }
+
+    function promptManualSubmit() {
+      const answered = activeExam.questions.filter(q => q.selectedIdx !== null).length;
+      const total = activeExam.questions.length;
+      const msg = answered < total
+        ? `നിങ്ങൾ ${total} ചോദ്യങ്ങളിൽ ${answered} എണ്ണത്തിന് മാത്രമേ ഉത്തരം നൽകിയിട്ടുള്ളൂ. ഇപ്പോൾ സബ്മിറ്റ് ചെയ്യണമോ?`
+        : 'എല്ലാ ചോദ്യങ്ങൾക്കും ഉത്തരം നൽകിയിട്ടുണ്ട്. പരീക്ഷ സബ്മിറ്റ് ചെയ്യട്ടെ?';
+
+      showConfirmDialog('Submit Exam (പരീക്ഷ സമർപ്പിക്കുക)', msg, () => {
+        finalizeExamSubmission('Manual Submit');
+      });
+    }
+
+    function finalizeExamSubmission(mode = 'Manual Submit') {
+      if (!activeExam.inProgress) return;
+
+      clearInterval(activeExam.timerInterval);
+      activeExam.inProgress = false;
+      document.getElementById('cheat-warning-modal').classList.add('hidden');
+      document.getElementById('cheat-warning-modal').classList.remove('flex');
+
+      const student = activeExam.student;
+      let score = 0;
+      let maxMarks = 0;
+
+      activeExam.questions.forEach(q => {
+        maxMarks += Number(q.marks || 0);
+        if (q.selectedIdx !== null && q.options[q.selectedIdx]?.isCorrect) {
+          score += Number(q.marks || 0);
+        }
+      });
+
+      const timeTakenSeconds = Math.max(1, activeExam.totalAllowedSeconds - activeExam.remainingSeconds);
+      const now = new Date();
+      const submittedAtFormatted = format12HourClock(now);
+      const dateStr = getTodayDateStr();
+
+      const record = {
+        attemptId: `${appState.settings.quizId}_${student.id}`,
+        quizId: appState.settings.quizId,
+        dateStr: dateStr,
+        timestamp: now.getTime(),
+        studentId: student.id,
+        name: student.name,
+        category: student.category,
+        team: student.team,
+        batch: student.batch,
+        score: score,
+        maxMarks: maxMarks,
+        timeTakenSeconds: timeTakenSeconds,
+        submittedAtFormatted: submittedAtFormatted,
+        mode: mode
+      };
+
+      // Replace any duplicate for same quizId & studentId
+      appState.todaySubmissions = appState.todaySubmissions.filter(
+        s => !(s.studentId === student.id && s.quizId === appState.settings.quizId)
+      );
+      appState.todaySubmissions.push(record);
+
+      appState.historyLogs = appState.historyLogs.filter(
+        h => !(h.studentId === student.id && h.quizId === appState.settings.quizId)
+      );
+      appState.historyLogs.push(record);
+
+      saveState();
+
+      // Sync result to Google Sheet / AppSheet if configured
+      pushResultToSheet(record);
+
+      // Update Confirmation View (Strictly zero answer reveal)
+      const streak = getStudentStreak(student.id);
+      document.getElementById('sub-student-name').textContent = student.name;
+      document.getElementById('sub-student-details').textContent = `${student.id} • ${student.category} • ${student.team} (${student.batch})`;
+      document.getElementById('sub-time-display').textContent = formatMMSS(timeTakenSeconds);
+      document.getElementById('sub-streak-display').textContent = `🔥 ${streak}`;
+
+      const scoreCard = document.getElementById('sub-score-card');
+      if (appState.settings.hideResults) {
+        scoreCard.classList.add('hidden');
+      } else {
+        scoreCard.classList.remove('hidden');
+        document.getElementById('sub-score-display').textContent = `${score} / ${maxMarks}`;
+      }
+
+      navigateTo('submitted');
+      showToast('പരീക്ഷ വിജയകരമായി സമർപ്പിച്ചു! / Exam Submitted Successfully!');
+    }
+
+    // Anti-Cheating Tab Switch / App Minimize Detection
+    function triggerTabViolation() {
+      if (!activeExam.inProgress || activeExam.warningOpen) return;
+      activeExam.tabSwitches += 1;
+
+      if (activeExam.tabSwitches === 1) {
+        activeExam.warningOpen = true;
+        const modal = document.getElementById('cheat-warning-modal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      } else if (activeExam.tabSwitches >= 2) {
+        finalizeExamSubmission('Auto-Submitted (Tab Switch Violation)');
+        showToast('മുന്നറിയിപ്പ് അവഗണിച്ചതിനാൽ പരീക്ഷ താനേ സബ്മിറ്റ് ആയി!', 'error');
+      }
+    }
+
+    function dismissCheatWarning() {
+      activeExam.warningOpen = false;
+      const modal = document.getElementById('cheat-warning-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden && activeExam.inProgress) {
+        triggerTabViolation();
+      }
+    });
+
+    window.addEventListener('blur', () => {
+      if (activeExam.inProgress) {
+        triggerTabViolation();
+      }
+    });
+
+    // -------------------------------------------------------------------------
+    // 7. AUTOMATIC WEEKLY CATEGORY TOPPERS & FILTERABLE LEADERBOARD
+    // -------------------------------------------------------------------------
+    function setLeaderboardMode(mode) {
+      leaderboardMode = mode;
+      const wBtn = document.getElementById('lb-mode-weekly');
+      const aBtn = document.getElementById('lb-mode-alltime');
+      if (mode === 'weekly') {
+        wBtn.className = 'px-4 py-2 rounded-lg text-xs sm:text-sm font-bold bg-white text-emerald-800 shadow-sm transition';
+        aBtn.className = 'px-4 py-2 rounded-lg text-xs sm:text-sm font-bold text-slate-600 hover:text-slate-900 transition';
+      } else {
+        aBtn.className = 'px-4 py-2 rounded-lg text-xs sm:text-sm font-bold bg-white text-emerald-800 shadow-sm transition';
+        wBtn.className = 'px-4 py-2 rounded-lg text-xs sm:text-sm font-bold text-slate-600 hover:text-slate-900 transition';
+      }
+      refreshLeaderboardView();
+    }
+
+    // Aggregates weekly or all-time attempts from historyLogs
+    function computeAggregatedStandings(mode = 'weekly') {
+      const weekWin = getCurrentWeekWindow();
+      const relevantLogs = mode === 'weekly'
+        ? appState.historyLogs.filter(log => log.timestamp >= weekWin.startTs && log.timestamp <= weekWin.endTs)
+        : appState.historyLogs;
+
+      return appState.students.map(st => {
+        const stLogs = relevantLogs.filter(l => l.studentId === st.id);
+        const totalScore = stLogs.reduce((sum, l) => sum + Number(l.score || 0), 0);
+        const totalTime = stLogs.reduce((sum, l) => sum + Number(l.timeTakenSeconds || 0), 0);
+        return {
+          ...st,
+          quizCount: stLogs.length,
+          totalScore: totalScore,
+          totalTime: totalTime,
+          streak: getStudentStreak(st.id)
+        };
+      });
+    }
+
+    // Automatically determines Weekly #1 Winner per Category (Senior, Junior, Sub Junior)
+    function renderCategoryToppers(containerId) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+
+      const standings = computeAggregatedStandings('weekly');
+      const categories = [
+        { key: 'Senior', badge: 'bg-purple-100 text-purple-800 border-purple-200' },
+        { key: 'Junior', badge: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
+        { key: 'Sub Junior', badge: 'bg-sky-100 text-sky-800 border-sky-200' }
+      ];
+
+      container.innerHTML = categories.map(cat => {
+        const catPlayers = standings.filter(s => s.category === cat.key && s.quizCount > 0);
+        catPlayers.sort((a, b) => {
+          if (b.totalScore !== a.totalScore) return b.totalScore - a.totalScore;
+          return a.totalTime - b.totalTime; // Tie-breaker: lowest total time
+        });
+
+        const winner = catPlayers[0];
+
+        if (!winner) {
+          return `
+            <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4 flex items-center justify-between gap-3">
+              <div>
+                <span class="inline-block px-2 py-0.5 rounded-md text-[10px] font-bold uppercase border ${cat.badge}">${cat.key}</span>
+                <p class="text-xs font-semibold text-slate-500 mt-1.5">Awaiting this week's quiz attempts...</p>
+              </div>
+              <span class="text-xl opacity-40">🏆</span>
+            </div>
+          `;
+        }
+
+        return `
+          <div class="rounded-2xl bg-gradient-to-r from-amber-50 via-white to-emerald-50/40 border border-amber-300/80 p-4 flex items-center justify-between gap-3 shadow-xs">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-11 h-11 rounded-xl bg-amber-400/20 border border-amber-300 text-amber-600 flex items-center justify-center text-xl shrink-0">
+                🏆
+              </div>
+              <div class="min-w-0">
+                <div class="flex items-center gap-1.5">
+                  <span class="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase border ${cat.badge}">${cat.key}</span>
+                  <span class="text-[10px] font-bold text-amber-700">#1 WEEKLY TOPPER</span>
+                </div>
+                <h4 class="text-sm font-extrabold text-slate-900 truncate mt-0.5">${escapeHTML(winner.name)}</h4>
+                <p class="text-[11px] text-slate-500 truncate">${winner.id} • ${winner.team} • ${winner.batch}</p>
+              </div>
+            </div>
+            <div class="text-right shrink-0">
+              <span class="block text-base font-extrabold text-emerald-800">${winner.totalScore} pts</span>
+              <span class="block text-[10px] font-mono text-slate-500">${formatMMSS(winner.totalTime)}</span>
+              <span class="text-[11px] font-bold text-orange-600">🔥 ${winner.streak}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function refreshLeaderboardView() {
+      const weekWin = getCurrentWeekWindow();
+      document.getElementById('lb-week-subtitle').textContent =
+        leaderboardMode === 'weekly'
+          ? `Current Week: ${weekWin.label} • Tie-breaker: Fastest Total Time`
+          : 'All-Time Cumulative Standings • Tie-breaker: Fastest Total Time';
+
+      renderCategoryToppers('lb-toppers-grid');
+      renderLeaderboardTable();
+    }
+
+    function renderLeaderboardTable() {
+      const catFilter = document.getElementById('filter-category').value;
+      const teamFilter = document.getElementById('filter-team').value;
+      const batchFilter = document.getElementById('filter-batch').value;
+
+      let rows = computeAggregatedStandings(leaderboardMode);
+
+      if (catFilter !== 'ALL') rows = rows.filter(r => r.category === catFilter);
+      if (teamFilter !== 'ALL') rows = rows.filter(r => r.team === teamFilter);
+      if (batchFilter !== 'ALL') rows = rows.filter(r => r.batch === batchFilter);
+
+      // Sort: active participants first by score desc, then fastest time asc
+      rows.sort((a, b) => {
+        if (a.quizCount === 0 && b.quizCount === 0) return a.id.localeCompare(b.id);
+        if (a.quizCount === 0) return 1;
+        if (b.quizCount === 0) return -1;
+        if (b.totalScore !== a.totalScore) return b.totalScore - a.totalScore;
+        return a.totalTime - b.totalTime;
+      });
+
+      const tbody = document.getElementById('leaderboard-tbody');
+      if (rows.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="9" class="py-10 text-center text-slate-500 text-sm">No students match the selected filter.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = rows.map((r, idx) => {
+        const hasPlayed = r.quizCount > 0;
+        const rankBadge = !hasPlayed
+          ? '<span class="text-slate-400">-</span>'
+          : idx === 0
+          ? '🥇'
+          : idx === 1
+          ? '🥈'
+          : idx === 2
+          ? '🥉'
+          : `#${idx + 1}`;
+
+        return `
+          <tr class="hover:bg-slate-50 transition ${!hasPlayed ? 'opacity-60' : ''}">
+            <td class="py-3.5 px-4 font-extrabold text-slate-900">${rankBadge}</td>
+            <td class="py-3.5 px-4 font-mono text-xs font-bold text-emerald-800">${r.id}</td>
+            <td class="py-3.5 px-4 font-bold text-slate-900">${escapeHTML(r.name)}</td>
+            <td class="py-3.5 px-4">
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-700">${r.category}</span>
+            </td>
+            <td class="py-3.5 px-4 text-xs text-slate-600">${r.team} • <strong>${r.batch}</strong></td>
+            <td class="py-3.5 px-4 text-right font-semibold text-slate-700">${r.quizCount}</td>
+            <td class="py-3.5 px-4 text-right font-extrabold text-emerald-800">${hasPlayed ? r.totalScore + ' pts' : '0'}</td>
+            <td class="py-3.5 px-4 text-right font-mono text-xs text-slate-600">${hasPlayed ? formatMMSS(r.totalTime) : '-'}</td>
+            <td class="py-3.5 px-4 text-center">
+              <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-orange-50 text-orange-700 text-xs font-bold">
+                🔥 ${r.streak}
+              </span>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // -------------------------------------------------------------------------
+    // 8. ADMIN CONTROL PANEL
+    // -------------------------------------------------------------------------
+    function handleAdminLogin(e) {
+      e.preventDefault();
+      const user = document.getElementById('admin-user-input').value.trim();
+      const pass = document.getElementById('admin-pass-input').value.trim();
+
+      if (user === 'admin' && pass === 'admin123') {
+        isAdminLoggedIn = true;
+        showToast('അഡ്മിൻ പാനലിലേക്ക് സ്വാഗതം!');
+        refreshAdminView();
+      } else {
+        showToast('Invalid Admin ID or Password!', 'error');
+      }
+    }
+
+    function logoutAdmin() {
+      isAdminLoggedIn = false;
+      document.getElementById('admin-user-input').value = '';
+      document.getElementById('admin-pass-input').value = '';
+      refreshAdminView();
+      showToast('Admin Logged Out');
+    }
+
+    function refreshAdminView() {
+      const loginBox = document.getElementById('admin-login-box');
+      const dashBox = document.getElementById('admin-dashboard');
+
+      if (!isAdminLoggedIn) {
+        loginBox.classList.remove('hidden');
+        dashBox.classList.add('hidden');
+        return;
+      }
+
+      loginBox.classList.add('hidden');
+      dashBox.classList.remove('hidden');
+
+      document.getElementById('admin-live-sub-count').textContent =
+        `${appState.todaySubmissions.length} / ${appState.students.length} Submitted Today`;
+
+      const sheetBadge = document.getElementById('admin-sheet-badge');
+      sheetBadge.textContent = appState.settings.webhookUrl ? '☁️ Google Sheet Connected' : '💾 Local Mode';
+
+      const activeBtn = document.getElementById('admin-toggle-active-btn');
+      if (appState.settings.isActive) {
+        activeBtn.textContent = 'Status: ACTIVE (Pause)';
+        activeBtn.className = 'px-4 py-3 rounded-xl font-bold text-xs sm:text-sm bg-emerald-600 hover:bg-emerald-500 text-white shadow transition';
+      } else {
+        activeBtn.textContent = 'Status: INACTIVE (Activate)';
+        activeBtn.className = 'px-4 py-3 rounded-xl font-bold text-xs sm:text-sm bg-red-600 hover:bg-red-500 text-white shadow transition';
+      }
+
+      renderAdminResultsTable();
+      renderAdminQuestionsList();
+      populateAdminSettingsForms();
+      renderAdminStudentsTable();
+    }
+
+    function switchAdminTab(tab) {
+      ['results', 'questions', 'settings', 'sync', 'students'].forEach(t => {
+        document.getElementById(`admin-tab-${t}`).classList.add('hidden');
+        document.getElementById(`tab-btn-${t}`).className =
+          'admin-tab-btn px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-white text-slate-700 hover:bg-slate-100 border border-slate-200';
+      });
+      document.getElementById(`admin-tab-${tab}`).classList.remove('hidden');
+      document.getElementById(`tab-btn-${tab}`).className =
+        'admin-tab-btn px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-emerald-700 text-white shadow-sm';
+    }
+
+    function toggleQuizActiveStatus() {
+      appState.settings.isActive = !appState.settings.isActive;
+      saveState();
+      syncQuestionsToSheet(true);
+      refreshAdminView();
+      showToast(appState.settings.isActive ? 'Quiz Activated!' : 'Quiz Paused / Inactive', 'warning');
+    }
+
+    // --- Submissions Manager (Allow Re-attempt, Edit Marks, Remove Entry) ---
+    function renderAdminResultsTable() {
+      const tbody = document.getElementById('admin-results-tbody');
+      if (appState.todaySubmissions.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" class="py-10 text-center text-slate-500 text-sm ml">
+              ഇതുവരെ ആരും പരീക്ഷ സബ്മിറ്റ് ചെയ്തിട്ടില്ല. (No submissions today)
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      const sorted = [...appState.todaySubmissions].sort((a, b) => b.timestamp - a.timestamp);
+      tbody.innerHTML = sorted.map(sub => {
+        const isViolation = sub.mode && sub.mode.includes('Violation');
+        return `
+          <tr class="hover:bg-slate-50">
+            <td class="py-3 px-4">
+              <span class="font-mono text-xs font-bold text-emerald-800 block">${sub.studentId}</span>
+              <span class="font-bold text-slate-900">${escapeHTML(sub.name)}</span>
+            </td>
+            <td class="py-3 px-4 text-xs text-slate-600">${sub.category} • ${sub.team}</td>
+            <td class="py-3 px-4 font-extrabold text-emerald-800">${sub.score} / ${sub.maxMarks}</td>
+            <td class="py-3 px-4 font-mono text-xs text-slate-700">${formatMMSS(sub.timeTakenSeconds)}</td>
+            <td class="py-3 px-4 font-mono text-xs text-slate-600">${sub.submittedAtFormatted}</td>
+            <td class="py-3 px-4">
+              <span class="px-2 py-0.5 rounded text-[11px] font-bold ${isViolation ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-700'}">
+                ${escapeHTML(sub.mode)}
+              </span>
+            </td>
+            <td class="py-3 px-4 text-right space-x-1 whitespace-nowrap">
+              <button onclick="openEditMarksModal('${sub.studentId}', ${sub.score})" class="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition">
+                ✏️ Edit Marks
+              </button>
+              <button onclick="allowStudentReattempt('${sub.studentId}')" class="px-2.5 py-1.5 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-950 text-xs font-bold transition">
+                🔄 Allow Re-attempt
+              </button>
+              <button onclick="removeSubmissionEntry('${sub.studentId}')" class="px-2.5 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 text-xs font-bold transition">
+                🗑️ Remove
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function allowStudentReattempt(studentId) {
+      const sub = appState.todaySubmissions.find(s => s.studentId === studentId);
+      const name = sub ? sub.name : studentId;
+
+      showConfirmDialog(
+        'Allow Re-attempt (വീണ്ടും എഴുതാൻ അനുവദിക്കുക)',
+        `${name} (${studentId})-ന്റെ സബ്മിഷൻ ലോക്ക് നീക്കം ചെയ്ത് വീണ്ടും പരീക്ഷ എഴുതാൻ അനുവദിക്കട്ടെ?`,
+        () => {
+          appState.todaySubmissions = appState.todaySubmissions.filter(s => s.studentId !== studentId);
+          appState.historyLogs = appState.historyLogs.filter(
+            h => !(h.studentId === studentId && h.quizId === appState.settings.quizId)
+          );
+          saveState();
+          refreshAdminView();
+          showToast(`${studentId}-ന് വീണ്ടും പരീക്ഷ എഴുതാനുള്ള അനുമതി നൽകി!`);
+        }
+      );
+    }
+
+    function removeSubmissionEntry(studentId) {
+      showConfirmDialog(
+        'Remove Entry',
+        `${studentId}-ന്റെ ഈ എൻട്രി പട്ടികയിൽ നിന്നും പൂർണ്ണമായി നീക്കം ചെയ്യണമോ?`,
+        () => {
+          appState.todaySubmissions = appState.todaySubmissions.filter(s => s.studentId !== studentId);
+          appState.historyLogs = appState.historyLogs.filter(
+            h => !(h.studentId === studentId && h.quizId === appState.settings.quizId)
+          );
+          saveState();
+          refreshAdminView();
+          showToast('Entry removed.');
+        }
+      );
+    }
+
+    function openEditMarksModal(studentId, score) {
+      const sub = appState.todaySubmissions.find(s => s.studentId === studentId);
+      document.getElementById('edit-marks-student-id').value = studentId;
+      document.getElementById('edit-marks-student-info').textContent = `${studentId} — ${sub ? sub.name : ''}`;
+      document.getElementById('edit-marks-input').value = score;
+
+      const modal = document.getElementById('edit-marks-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeEditMarksModal() {
+      const modal = document.getElementById('edit-marks-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function saveEditedMarks(e) {
+      e.preventDefault();
+      const studentId = document.getElementById('edit-marks-student-id').value;
+      const newScore = parseFloat(document.getElementById('edit-marks-input').value);
+
+      if (!isNaN(newScore)) {
+        const tIdx = appState.todaySubmissions.findIndex(s => s.studentId === studentId);
+        if (tIdx !== -1) appState.todaySubmissions[tIdx].score = newScore;
+
+        const hIdx = appState.historyLogs.findIndex(
+          h => h.studentId === studentId && h.quizId === appState.settings.quizId
+        );
+        if (hIdx !== -1) appState.historyLogs[hIdx].score = newScore;
+
+        saveState();
+        refreshAdminView();
+        showToast('മാർക്ക് അപ്ഡേറ്റ് ചെയ്തു! (Marks Updated)');
+      }
+      closeEditMarksModal();
+    }
+
+    // --- Smart Bulk Question Importer & Sheet Sync ---
+    function fillSampleBulkText() {
+      document.getElementById('bulk-import-textarea').value = `1. കേരളത്തിലെ ഏറ്റവും നീളം കൂടിയ നദി ഏതാണ്? [2.5]
+A) ഭാരതപ്പുഴ
+B) *പെരിയാർ
+C) പമ്പ
+D) ചാലിയാർ
+
+2. ഇന്ത്യയുടെ ദേശീയ പക്ഷി ഏതാണ്?
+A) മയിൽ
+B) കാക്ക
+C) പ്രാവ്
+D) കുയിൽ
+Ans: A
+
+3. 'വിംഗ്സ് ഓഫ് ഫയർ' ആരുടെ ആത്മകഥയാണ്?
+A) മഹാത്മാഗാന്ധി
+B) ജവഹർലാൽ നെഹ്‌റു
+C) ഡോ. എ.പി.ജെ. അബ്ദുൾ കലാം
+D) സി.വി. രാമൻ
+Answer: C`;
+      showToast('Sample format loaded!');
+    }
+
+    function parseAndImportBulkQuestions() {
+      const raw = document.getElementById('bulk-import-textarea').value.trim();
+      const defaultMarks = parseFloat(document.getElementById('bulk-default-marks').value) || 2.5;
+      const replaceExisting = document.getElementById('bulk-replace-existing').checked;
+
+      if (!raw) {
+        showToast('ചോദ്യങ്ങൾ ടെക്സ്റ്റ് ബോക്സിൽ പേസ്റ്റ് ചെയ്യുക.', 'error');
+        return;
+      }
+
+      const lines = raw.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+      const parsed = [];
+      let current = null;
+
+      const optRegex = /^([A-Da-d])[\)\.\:\-]\s*(.+)$/;
+      const ansRegex = /^(?:Ans|Answer|ഉത്തരം)\s*[\:\-\=]\s*([A-Da-d])/i;
+      const qPrefixRegex = /^(?:Q?\d+[\)\.\:\-]\s*)(.+)$/i;
+
+      const commitQuestion = () => {
+        if (current && current.options.length >= 2) {
+          while (current.options.length < 4) current.options.push('-');
+          if (current.correctIndex === null || current.correctIndex < 0 || current.correctIndex > 3) {
+            current.correctIndex = 0;
+          }
+          parsed.push(current);
+        }
+      };
+
+      lines.forEach(line => {
+        const ansMatch = line.match(ansRegex);
+        if (ansMatch && current) {
+          const idx = ['A', 'B', 'C', 'D'].indexOf(ansMatch[1].toUpperCase());
+          if (idx !== -1) current.correctIndex = idx;
+          return;
+        }
+
+        const optMatch = line.match(optRegex);
+        if (optMatch && current) {
+          let txt = optMatch[2].trim();
+          let isStar = false;
+          if (txt.startsWith('*') || txt.endsWith('*')) {
+            isStar = true;
+            txt = txt.replace(/^\*+|\*+$/g, '').trim();
+          }
+          if (current.options.length < 4) {
+            const idx = current.options.length;
+            current.options.push(txt);
+            if (isStar) current.correctIndex = idx;
+          }
+          return;
+        }
+
+        commitQuestion();
+
+        let qText = line;
+        const qMatch = line.match(qPrefixRegex);
+        if (qMatch) qText = qMatch[1].trim();
+
+        let marks = defaultMarks;
+        const markMatch = qText.match(/\[(\d+(?:\.\d+)?)\]\s*$/);
+        if (markMatch) {
+          marks = parseFloat(markMatch[1]);
+          qText = qText.replace(markMatch[0], '').trim();
+        }
+
+        current = {
+          id: 'q_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+          text: qText,
+          options: [],
+          correctIndex: null,
+          marks: marks
+        };
+      });
+
+      commitQuestion();
+
+      if (parsed.length === 0) {
+        showToast('ചോദ്യങ്ങൾ വേർതിരിക്കാൻ സാധിച്ചില്ല. ഫോർമാറ്റ് പരിശോധിക്കുക.', 'error');
+        return;
+      }
+
+      appState.questions = replaceExisting ? parsed : [...appState.questions, ...parsed];
+      saveState();
+      document.getElementById('bulk-import-textarea').value = '';
+      refreshAdminView();
+      syncQuestionsToSheet();
+      showToast(`✅ ${parsed.length} ചോദ്യങ്ങൾ ഇംപോർട്ട് ചെയ്തു!`);
+    }
+
+    function promptClearAllQuestions() {
+      showConfirmDialog(
+        'Clear All Questions',
+        'നിലവിലുള്ള എല്ലാ ചോദ്യങ്ങളും നീക്കം ചെയ്യണമോ? Google Sheet കണക്ട് ചെയ്തിട്ടുണ്ടെങ്കിൽ അവിടെയും പഴയ ചോദ്യങ്ങൾ ക്ലിയർ ആകും.',
+        () => {
+          appState.questions = [];
+          saveState();
+          refreshAdminView();
+          syncQuestionsToSheet();
+          showToast('എല്ലാ ചോദ്യങ്ങളും നീക്കം ചെയ്തു.');
+        }
+      );
+    }
+
+    function renderAdminQuestionsList() {
+      const container = document.getElementById('admin-questions-list');
+      document.getElementById('admin-q-count').textContent = appState.questions.length;
+      const sumMarks = appState.questions.reduce((s, q) => s + Number(q.marks || 0), 0);
+      document.getElementById('admin-q-total-marks').textContent = sumMarks;
+
+      if (appState.questions.length === 0) {
+        container.innerHTML = `<p class="text-sm text-slate-500 py-4 text-center">No active questions. Use the Bulk Importer above to add questions.</p>`;
+        return;
+      }
+
+      const letters = ['A', 'B', 'C', 'D'];
+      container.innerHTML = appState.questions.map((q, idx) => `
+        <div class="p-4 rounded-xl border border-slate-200 bg-slate-50/70 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div class="space-y-1.5">
+            <div class="flex items-center gap-2">
+              <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-900 text-xs font-extrabold">Q${idx + 1}</span>
+              <span class="px-2 py-0.5 rounded bg-slate-200 text-slate-700 text-xs font-bold">${q.marks} Marks</span>
+            </div>
+            <p class="font-bold text-slate-900 text-sm sm:text-base">${escapeHTML(q.text)}</p>
+            <div class="flex flex-wrap gap-2 pt-1">
+              ${q.options.map((opt, oIdx) => `
+                <span class="px-2.5 py-1 rounded-lg text-xs ${
+                  oIdx === Number(q.correctIndex)
+                    ? 'bg-emerald-600 text-white font-bold'
+                    : 'bg-white border border-slate-200 text-slate-600'
+                }">
+                  ${letters[oIdx]}) ${escapeHTML(opt)}
+                </span>
+              `).join('')}
+            </div>
+          </div>
+
+          <div class="flex sm:flex-col gap-2 shrink-0">
+            <button onclick="openEditQuestionModal(${idx})" class="px-3 py-1.5 rounded-lg bg-white border border-slate-300 hover:bg-slate-100 text-xs font-bold text-slate-800">
+              Edit
+            </button>
+            <button onclick="deleteSingleQuestion(${idx})" class="px-3 py-1.5 rounded-lg bg-red-50 border border-red-200 hover:bg-red-100 text-xs font-bold text-red-700">
+              Delete
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function openAddSingleQuestionModal() {
+      document.getElementById('q-modal-title').textContent = 'Add New Question';
+      document.getElementById('q-modal-index').value = '-1';
+      document.getElementById('q-modal-text').value = '';
+      document.getElementById('q-modal-opt0').value = '';
+      document.getElementById('q-modal-opt1').value = '';
+      document.getElementById('q-modal-opt2').value = '';
+      document.getElementById('q-modal-opt3').value = '';
+      document.getElementById('q-modal-correct').value = '0';
+      document.getElementById('q-modal-marks').value = '2.5';
+
+      const modal = document.getElementById('question-editor-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function openEditQuestionModal(idx) {
+      const q = appState.questions[idx];
+      if (!q) return;
+      document.getElementById('q-modal-title').textContent = `Edit Question #${idx + 1}`;
+      document.getElementById('q-modal-index').value = idx;
+      document.getElementById('q-modal-text').value = q.text;
+      document.getElementById('q-modal-opt0').value = q.options[0] || '';
+      document.getElementById('q-modal-opt1').value = q.options[1] || '';
+      document.getElementById('q-modal-opt2').value = q.options[2] || '';
+      document.getElementById('q-modal-opt3').value = q.options[3] || '';
+      document.getElementById('q-modal-correct').value = String(q.correctIndex);
+      document.getElementById('q-modal-marks').value = q.marks;
+
+      const modal = document.getElementById('question-editor-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeQuestionModal() {
+      const modal = document.getElementById('question-editor-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function saveQuestionFromModal(e) {
+      e.preventDefault();
+      const idx = parseInt(document.getElementById('q-modal-index').value, 10);
+      const qObj = {
+        id: idx >= 0 ? appState.questions[idx].id : 'q_' + Date.now(),
+        text: document.getElementById('q-modal-text').value.trim(),
+        options: [
+          document.getElementById('q-modal-opt0').value.trim(),
+          document.getElementById('q-modal-opt1').value.trim(),
+          document.getElementById('q-modal-opt2').value.trim(),
+          document.getElementById('q-modal-opt3').value.trim()
+        ],
+        correctIndex: parseInt(document.getElementById('q-modal-correct').value, 10),
+        marks: parseFloat(document.getElementById('q-modal-marks').value) || 2.5
+      };
+
+      if (idx >= 0) {
+        appState.questions[idx] = qObj;
+      } else {
+        appState.questions.push(qObj);
+      }
+
+      saveState();
+      closeQuestionModal();
+      refreshAdminView();
+      syncQuestionsToSheet();
+      showToast('Question saved!');
+    }
+
+    function deleteSingleQuestion(idx) {
+      showConfirmDialog('Delete Question', 'ഈ ചോദ്യം ഡിലീറ്റ് ചെയ്യണമെന്ന് ഉറപ്പാണോ?', () => {
+        appState.questions.splice(idx, 1);
+        saveState();
+        refreshAdminView();
+        syncQuestionsToSheet();
+        showToast('Question deleted.');
+      });
+    }
+
+    // --- Settings, Daily Archive/Reset & CSV Export ---
+    function populateAdminSettingsForms() {
+      document.getElementById('setting-quiz-title').value = appState.settings.title;
+      document.getElementById('setting-duration').value = appState.settings.durationMinutes;
+      document.getElementById('setting-quiz-id').value = appState.settings.quizId;
+      document.getElementById('setting-hide-results').checked = !!appState.settings.hideResults;
+      document.getElementById('setting-webhook-url').value = appState.settings.webhookUrl || '';
+    }
+
+    function saveQuizSettings() {
+      const title = document.getElementById('setting-quiz-title').value.trim();
+      const duration = parseInt(document.getElementById('setting-duration').value, 10);
+      const hideResults = document.getElementById('setting-hide-results').checked;
+
+      if (title) appState.settings.title = title;
+      if (duration >= 1) appState.settings.durationMinutes = duration;
+      appState.settings.hideResults = hideResults;
+
+      saveState();
+      syncQuestionsToSheet(true);
+      refreshAdminView();
+      showToast('Settings saved & synced!');
+    }
+
+    function promptArchiveAndResetDaily() {
+      showConfirmDialog(
+        'Archive & Reset Daily Quiz',
+        'ഇന്നത്തെ മാർക്കുകൾ Weekly Leaderboard-ൽ നിലനിർത്തിക്കൊണ്ട്, അടുത്ത ക്വിസ്സിനായി പുതിയ Quiz ID സൃഷ്ടിക്കുകയും എല്ലാ കുട്ടികളുടെയും ലോക്ക് ഒഴിവാക്കുകയും ചെയ്യട്ടെ?',
+        () => {
+          appState.todaySubmissions = [];
+          appState.settings.quizId = 'QUIZ_' + getTodayDateStr() + '_' + Math.floor(100 + Math.random() * 900);
+          saveState();
+          syncQuestionsToSheet(true);
+          refreshAdminView();
+          showToast('✅ Daily Quiz Reset Complete! All students unlocked for the new quiz.');
+        }
+      );
+    }
+
+    function exportSubmissionsCSV() {
+      if (appState.todaySubmissions.length === 0) {
+        showToast('എക്സ്പോർട്ട് ചെയ്യാൻ സബ്മിഷനുകൾ ഒന്നും ഇല്ല.', 'warning');
+        return;
+      }
+
+      const headers = ['QuizID', 'StudentID', 'Name', 'Category', 'Team', 'Batch', 'Score', 'MaxMarks', 'TimeTakenSec', 'SubmittedAt', 'Mode'];
+      const rows = appState.todaySubmissions.map(s => [
+        s.quizId,
+        s.studentId,
+        `"${(s.name || '').replace(/"/g, '""')}"`,
+        s.category,
+        `"${(s.team || '').replace(/"/g, '""')}"`,
+        s.batch,
+        s.score,
+        s.maxMarks,
+        s.timeTakenSeconds,
+        `"${s.submittedAtFormatted}"`,
+        `"${s.mode}"`
+      ].join(','));
+
+      const csv = 'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(','), ...rows].join('\n');
+      const link = document.createElement('a');
+      link.setAttribute('href', encodeURI(csv));
+      link.setAttribute('download', `Ishaathussunna_Dars_Quiz_${getTodayDateStr()}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast('CSV Report Downloaded!');
+    }
+
+    // -------------------------------------------------------------------------
+    // 9. GOOGLE SHEET / APPSHEET CLOUD SYNC ENGINE
+    // -------------------------------------------------------------------------
+    function saveWebhookUrl() {
+      const url = document.getElementById('setting-webhook-url').value.trim();
+      appState.settings.webhookUrl = url || DEFAULT_SCRIPT_URL;
+      saveState();
+      refreshAdminView();
+      fetchQuestionsFromSheet(true);
+    }
+
+    async function syncQuestionsToSheet(silent = false) {
+      const url = appState.settings.webhookUrl || DEFAULT_SCRIPT_URL;
+      if (!url) return;
+
+      try {
+        await fetch(`${url}?t=${Date.now()}`, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            action: 'saveQuestions',
+            questions: appState.questions,
+            settings: appState.settings
+          })
+        });
+        if (!silent) showToast('☁️ Questions & Settings pushed to Google Sheet!');
+      } catch (err) {
+        console.error('Sheet sync error:', err);
+        if (!silent) showToast('Sheet sync warning: check Web App URL.', 'warning');
+      }
+    }
+
+    async function fetchQuestionsFromSheet(notify = false) {
+      const url = appState.settings.webhookUrl || DEFAULT_SCRIPT_URL;
+      if (!url) return;
+
+      try {
+        const res = await fetch(`${url}?action=getQuestions&t=${Date.now()}`, {
+          cache: 'no-store'
+        });
+        const data = await res.json();
+        if (data && data.status === 'ok') {
+          if (Array.isArray(data.questions) && data.questions.length > 0) {
+            appState.questions = data.questions;
+          } else if (Array.isArray(data.questions) && data.questions.length === 0 && data.settings) {
+            appState.questions = [];
+          }
+          if (data.settings) {
+            if (data.settings.title) appState.settings.title = data.settings.title;
+            if (data.settings.durationMinutes) appState.settings.durationMinutes = data.settings.durationMinutes;
+            if (typeof data.settings.isActive === 'boolean') appState.settings.isActive = data.settings.isActive;
+            if (data.settings.quizId) appState.settings.quizId = data.settings.quizId;
+          }
+          saveState();
+          refreshHomeView();
+          if (isAdminLoggedIn) refreshAdminView();
+          if (notify) showToast(`☁️ Synced ${appState.questions.length} questions from Google Sheet!`);
+        }
+      } catch (err) {
+        console.warn('Could not pull from Sheet:', err);
+        if (notify) showToast('Could not fetch from Sheet URL. Verify deployment permissions.', 'warning');
+      }
+    }
+
+    async function pushResultToSheet(resultRecord) {
+      const url = appState.settings.webhookUrl || DEFAULT_SCRIPT_URL;
+      if (!url) return;
+
+      try {
+        await fetch(`${url}?t=${Date.now()}`, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({
+            action: 'submitResult',
+            result: resultRecord
+          })
+        });
+      } catch (err) {
+        console.warn('Result push failed:', err);
+      }
+    }
+
+    function copyAppsScriptCode() {
+      const codeEl = document.getElementById('apps-script-code-block');
+      const textarea = document.createElement('textarea');
+      textarea.value = codeEl.textContent;
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand('copy');
+        showToast('📋 Google Apps Script (Code.gs) copied to clipboard!');
+      } catch (e) {
+        showToast('Could not copy automatically. Please select and copy manually.', 'warning');
+      }
+      document.body.removeChild(textarea);
+    }
+
+    // --- Admin Roster Table ---
+    function renderAdminStudentsTable() {
+      const tbody = document.getElementById('admin-students-tbody');
+      tbody.innerHTML = appState.students.map((st, idx) => `
+        <tr class="hover:bg-slate-50">
+          <td class="py-2.5 px-4 font-mono text-xs font-extrabold text-emerald-800">${st.id}</td>
+          <td class="py-2.5 px-4">
+            <input type="text" id="st-name-${idx}" value="${escapeHTML(st.name)}" class="w-full min-w-[160px] px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs font-bold" />
+          </td>
+          <td class="py-2.5 px-4">
+            <select id="st-cat-${idx}" class="px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs font-bold bg-white">
+              <option value="Senior" ${st.category === 'Senior' ? 'selected' : ''}>Senior</option>
+              <option value="Junior" ${st.category === 'Junior' ? 'selected' : ''}>Junior</option>
+              <option value="Sub Junior" ${st.category === 'Sub Junior' ? 'selected' : ''}>Sub Junior</option>
+            </select>
+          </td>
+          <td class="py-2.5 px-4">
+            <select id="st-team-${idx}" class="px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs font-semibold bg-white">
+              <option value="Fatih's Force" ${st.team === "Fatih's Force" ? 'selected' : ''}>Fatih's Force</option>
+              <option value="Cordoba Knights" ${st.team === 'Cordoba Knights' ? 'selected' : ''}>Cordoba Knights</option>
+              <option value="Samarqand Avengers" ${st.team === 'Samarqand Avengers' ? 'selected' : ''}>Samarqand Avengers</option>
+              <option value="Baghdad Gild" ${st.team === 'Baghdad Gild' ? 'selected' : ''}>Baghdad Gild</option>
+            </select>
+          </td>
+          <td class="py-2.5 px-4">
+            <input type="text" id="st-batch-${idx}" value="${escapeHTML(st.batch)}" class="w-24 px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs font-semibold" />
+          </td>
+          <td class="py-2.5 px-4 text-center font-bold text-xs text-orange-600">🔥 ${getStudentStreak(st.id)}</td>
+          <td class="py-2.5 px-4 text-right">
+            <button onclick="saveStudentRow(${idx})" class="px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold transition">
+              Save
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function saveStudentRow(idx) {
+      const name = document.getElementById(`st-name-${idx}`).value.trim();
+      const category = document.getElementById(`st-cat-${idx}`).value;
+      const team = document.getElementById(`st-team-${idx}`).value;
+      const batch = document.getElementById(`st-batch-${idx}`).value.trim();
+
+      if (name) appState.students[idx].name = name;
+      appState.students[idx].category = category;
+      appState.students[idx].team = team;
+      if (batch) appState.students[idx].batch = batch;
+
+      saveState();
+      showToast(`${appState.students[idx].id} updated!`);
+    }
+
+    function resetRosterToDefault() {
+      showConfirmDialog('Restore Default Roster', '28 വിദ്യാർത്ഥികളുടെയും യഥാർത്ഥ പേരുകളും ടീമുകളും പുനഃസ്ഥാപിക്കണമോ?', () => {
+        appState.students = JSON.parse(JSON.stringify(EXACT_STUDENTS));
+        saveState();
+        renderAdminStudentsTable();
+        refreshHomeView();
+        showToast('Default 28-student roster restored!');
+      });
+    }
+
+    // -------------------------------------------------------------------------
+    // 10. INITIALIZATION
+    // -------------------------------------------------------------------------
+    window.addEventListener('DOMContentLoaded', async () => {
+      loadState();
+      startLiveClocks();
+      refreshHomeView();
+      await fetchQuestionsFromSheet(false);
+    });
+  </script>
+</body>
+</html>
